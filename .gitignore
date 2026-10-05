@@ -1,0 +1,7 @@
+node_modules/
+vendor/
+packages/*/dist/
+.DS_Store
+*.log
+.phpunit.result.cache
+packages/*/src/css/*.built.css

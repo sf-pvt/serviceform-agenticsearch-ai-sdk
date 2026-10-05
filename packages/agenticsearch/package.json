@@ -1,0 +1,107 @@
+{
+  "name": "@serviceform/agenticsearch",
+  "version": "0.1.0",
+  "description": "Serviceform AgenticSearch: a search client, composable widgets with headless connectors, and ready-made box, modal and full-page search for any website.",
+  "license": "SEE LICENSE IN LICENSE",
+  "type": "module",
+  "sideEffects": [
+    "./dist/*.css",
+    "./dist/agenticsearch.prebuilt.min.js"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "unpkg": "./dist/agenticsearch.prebuilt.min.js",
+  "jsdelivr": "./dist/agenticsearch.prebuilt.min.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js",
+      "require": "./dist/client.cjs"
+    },
+    "./connectors": {
+      "types": "./dist/connectors.d.ts",
+      "import": "./dist/connectors.js",
+      "require": "./dist/connectors.cjs"
+    },
+    "./widgets": {
+      "types": "./dist/widgets.d.ts",
+      "import": "./dist/widgets.js",
+      "require": "./dist/widgets.cjs"
+    },
+    "./prebuilt": {
+      "types": "./dist/prebuilt.d.ts",
+      "import": "./dist/prebuilt.js",
+      "require": "./dist/prebuilt.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js",
+      "require": "./dist/react.cjs"
+    },
+    "./vue": {
+      "types": "./dist/vue.d.ts",
+      "import": "./dist/vue.js",
+      "require": "./dist/vue.cjs"
+    },
+    "./css": "./dist/agenticsearch.min.css",
+    "./dist/*": "./dist/*"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-css.mjs --source-only && tsup && node scripts/build-css.mjs",
+    "pretest": "node scripts/build-css.mjs --source-only",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk.git",
+    "directory": "packages/agenticsearch"
+  },
+  "keywords": [
+    "search",
+    "agentic-search",
+    "ai-search",
+    "instantsearch",
+    "faceted-search",
+    "ecommerce",
+    "serviceform",
+    "react",
+    "vue"
+  ],
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.0.0",
+    "vue": "^3.5.43"
+  },
+  "peerDependencies": {
+    "react": ">=17",
+    "vue": ">=3.3"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    }
+  },
+  "homepage": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk"
+}

@@ -1,0 +1,72 @@
+Serviceform AgenticSearch SDK License
+
+Copyright (c) 2026 Serviceform Oy (business ID 2713896-6). All rights reserved.
+
+"Software" means the Serviceform AgenticSearch SDK in this repository and in
+the packages published from it: source code, built files, stylesheets,
+examples and documentation.
+
+1. Ownership
+
+The Software is owned by Serviceform Oy and is licensed, not sold. Nothing in
+this license transfers ownership of the Software or of any Serviceform
+trademark.
+
+2. What you may do
+
+Provided you follow this license, you may, free of charge:
+
+  a. install, copy and run the Software;
+  b. modify it to fit your website or application;
+  c. include it, modified or not, in websites and applications that you own
+     or operate, or that you build or maintain for your clients, and serve it
+     to the visitors of those websites and applications;
+
+in each case only to connect those websites and applications to Serviceform
+services. Use of the Serviceform services themselves requires a Serviceform
+account and is governed by the Serviceform Terms of Service.
+
+3. What you may not do
+
+You may not:
+
+  a. use the Software, or anything derived from it, with a search, AI or
+     data service that is not provided by Serviceform;
+  b. sell, rent, sublicense or redistribute the Software as a product of its
+     own, or as part of a product or service that competes with Serviceform;
+  c. remove or alter copyright or license notices;
+  d. use the Serviceform name or logos, except to state truthfully that a
+     website or application uses Serviceform AgenticSearch.
+
+4. Copies shipped inside the Serviceform plugin for WordPress
+
+Copies of the Software that Serviceform distributes as part of the
+Serviceform plugin on WordPress.org are licensed under the GNU General Public
+License, version 2 or later, as that plugin is. That applies to those copies
+only.
+
+5. Contributions
+
+If you send Serviceform a change to the Software (for example a pull
+request), you grant Serviceform a perpetual, worldwide, royalty-free,
+irrevocable license to use, modify and distribute it as part of the Software
+under any terms.
+
+6. No warranty
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. TO THE EXTENT THE LAW ALLOWS,
+SERVICEFORM IS NOT LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+FROM THE SOFTWARE OR ITS USE. Any warranty or liability for the Serviceform
+services is set out in the Serviceform Terms of Service, not here.
+
+7. Termination
+
+This license ends automatically if you break it. When it ends you must stop
+using the Software and remove it from the websites and applications you
+control.
+
+8. Questions
+
+For any use this license does not cover, write to support@serviceform.com.

@@ -1,0 +1,34 @@
+{
+    "name": "serviceform/agenticsearch",
+    "description": "Serviceform AgenticSearch for PHP: server-side mount markup, cached settings and a small search API client.",
+    "type": "library",
+    "license": "proprietary",
+    "keywords": ["search", "ecommerce", "ai", "serviceform", "site-search", "faceted-search"],
+    "homepage": "https://serviceform.com",
+    "require": {
+        "php": ">=7.4",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
+    },
+    "suggest": {
+        "ext-curl": "Used for HTTP requests when available; PHP streams are the fallback."
+    },
+    "autoload": {
+        "psr-4": {
+            "Serviceform\\AgenticSearch\\": "php/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Serviceform\\AgenticSearch\\Tests\\": "php/tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

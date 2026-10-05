@@ -1,0 +1,15 @@
+{
+  "name": "serviceform-agenticsearch",
+  "private": true,
+  "description": "Serviceform AgenticSearch: search widgets, a search client and ready-made search layouts for any website.",
+  "license": "SEE LICENSE IN LICENSE",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @serviceform/agenticsearch",
+    "test": "npm test -w @serviceform/agenticsearch",
+    "typecheck": "npm run typecheck -w @serviceform/agenticsearch",
+    "serve": "npx --yes serve -l 5173 ."
+  }
+}

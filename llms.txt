@@ -1,0 +1,42 @@
+# Serviceform AgenticSearch
+
+> Search for any website, powered by a Serviceform search tool: instant results, faceted results pages and AI answers. One script and one stylesheet for a ready-made search, or widgets and headless connectors for a custom one. JavaScript (`@serviceform/agenticsearch`, with React and Vue bindings at `/react` and `/vue`) and PHP (`serviceform/agenticsearch`).
+
+The only value a site needs is its search tool id (public, from the Serviceform dashboard: Tools > Search box > Install). There is no API key.
+
+Minimal setup on any site:
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@serviceform/agenticsearch@0/dist/agenticsearch.min.css">
+<div data-sf-agenticsearch data-tool-id="TOOL_ID" data-layout="box" data-search-page="/search"></div>
+<div data-sf-agenticsearch data-tool-id="TOOL_ID" data-layout="page"></div>
+<script src="https://cdn.jsdelivr.net/npm/@serviceform/agenticsearch@0/dist/agenticsearch.prebuilt.min.js" defer></script>
+```
+
+## Start here
+
+- [AGENTS.md](AGENTS.md): step-by-step instructions for AI coding agents, every option, rules, verification, troubleshooting
+- [README.md](README.md): overview, widgets, connectors, client
+
+## Guides
+
+- [Plain HTML and server-rendered sites](docs/quickstart/html.md)
+- [Astro](docs/quickstart/astro.md)
+- [React and Next.js](docs/quickstart/react.md)
+- [Vue and Nuxt](docs/quickstart/vue.md)
+- [WordPress and WooCommerce](docs/quickstart/wordpress.md): uses the Serviceform plugin, https://wordpress.org/plugins/serviceform-pixel/
+- [Shopify](docs/quickstart/shopify.md): uses the Serviceform app, https://apps.shopify.com/serviceform-app
+- [PHP](php/README.md)
+
+## Reference
+
+- [Contracts](docs/contract.md): mount attributes, settings shape, HTTP API request and response shapes
+- [Type definitions](packages/agenticsearch/src/client/types.ts): every type the client returns
+- [Widget parameters](packages/agenticsearch/src/widgets/index.ts)
+- [Connector render state](packages/agenticsearch/src/connectors/index.ts)
+
+## Examples
+
+- [Ready-made layouts](examples/index.html)
+- [A custom layout from widgets](examples/widgets.html)
+- [Next to Bootstrap, Tailwind and a hostile theme](examples/frameworks.html)

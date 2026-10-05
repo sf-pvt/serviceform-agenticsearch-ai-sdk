@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Serviceform AgenticSearch: ready-made layouts</title>
+<link rel="stylesheet" href="../packages/agenticsearch/dist/agenticsearch.min.css">
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; color: #14161a; background: #fafafa; }
+  header { display: flex; align-items: center; gap: 24px; padding: 14px 24px; background: #fff; border-bottom: 1px solid #e5e7eb; }
+  header strong { font-size: 18px; }
+  header nav { display: flex; gap: 14px; font-size: 14px; }
+  header nav a { color: #374151; }
+  header nav a[aria-current] { font-weight: 700; color: #000; }
+  header .slot { margin-left: auto; width: 340px; max-width: 45vw; }
+  main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 80px; }
+  .hero { padding: 56px 16px; margin-bottom: 28px; border-radius: 16px; background: #eef2f7; text-align: center; }
+  .hero h1 { margin: 0 0 18px; font-size: 28px; }
+  code { background: #eef0f3; padding: 2px 6px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<!--
+  Open with ?tool=TOOL_ID (and &api=https://... to use another Serviceform API host).
+  ?layout=page | section | box | modal picks what is shown. The header always
+  carries a box (or the modal trigger) that sends Enter to the page layout.
+-->
+<header>
+  <strong>Demo store</strong>
+  <nav id="nav"></nav>
+  <div class="slot" id="header-slot"></div>
+</header>
+<main id="main"></main>
+<script>
+  const params = new URLSearchParams(location.search);
+  const tool = params.get('tool') || '';
+  const api = params.get('api') || '';
+  const layout = params.get('layout') || 'page';
+  const link = (name) => { const p = new URLSearchParams({ tool, layout: name }); if (api) p.set('api', api); return '?' + p; };
+  document.getElementById('nav').innerHTML = ['page', 'section', 'box', 'modal'].map((n) => `<a href="${link(n)}" ${n === layout ? 'aria-current="page"' : ''}>${n}</a>`).join('');
+  const mountDiv = (attrs) => { const d = document.createElement('div'); d.setAttribute('data-sf-agenticsearch', ''); for (const [k, v] of Object.entries(attrs)) if (v) d.setAttribute('data-' + k, v); return d; };
+  const main = document.getElementById('main');
+  if (!tool) main.innerHTML = '<p>Add <code>?tool=YOUR_TOOL_ID</code> to the address.</p>';
+  else {
+    const base = { 'tool-id': tool, 'api-base': api, test: 'true' };
+    document.getElementById('header-slot').appendChild(mountDiv({ ...base, layout: layout === 'modal' ? 'modal' : 'box', 'search-page': link('page').replace(/^\?/, location.pathname + '?') }));
+    if (layout === 'section') { const hero = document.createElement('div'); hero.className = 'hero'; hero.innerHTML = '<h1>Find your next car</h1>'; hero.appendChild(mountDiv({ ...base, layout: 'section' })); main.appendChild(hero); }
+    if (layout === 'page') main.appendChild(mountDiv({ ...base, layout: 'page' }));
+    if (layout === 'box' || layout === 'modal') main.insertAdjacentHTML('beforeend', '<p>The search is in the header. Type there' + (layout === 'modal' ? ', or press Cmd/Ctrl+K.' : '.') + '</p>');
+  }
+</script>
+<script src="../packages/agenticsearch/dist/agenticsearch.prebuilt.min.js" defer></script>
+</body>
+</html>
