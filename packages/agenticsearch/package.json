@@ -1,6 +1,6 @@
 {
   "name": "@serviceform/agenticsearch",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Serviceform AgenticSearch: a search client, composable widgets with headless connectors, and ready-made box, modal and full-page search for any website.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
