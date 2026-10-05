@@ -88,6 +88,23 @@ describe('settings', () => {
     expect(calls.filter((c) => c.url.includes('/api/public/tid/'))).toHaveLength(1);
   });
 
+  it('falls back when the endpoint is missing and the browser hides the 404 behind a failed request', async () => {
+    const doc = { type: 'searchbox', searchbox: { language: 'fi', accent: '#102F58', pages: [{ l: 'Rahoitus', h: 'https://shop.test/rahoitus' }] } };
+    const calls: string[] = [];
+    const fetch = (async (input: RequestInfo | URL) => {
+      const url = String(input);
+      calls.push(url);
+      // What a cross-origin 404 without CORS headers looks like to a page.
+      if (url.includes('/omnibox/config/')) throw new TypeError('Failed to fetch');
+      return { ok: true, status: 200, json: async () => doc } as unknown as Response;
+    }) as typeof globalThis.fetch;
+    const client = serviceformSearch('tool1', { fetch, storage: false, apiBase: 'https://api.test' });
+    expect(await client.getConfig()).toMatchObject({ language: 'fi', accent: '#102F58' });
+    expect(await client.getPages()).toEqual([{ label: 'Rahoitus', url: 'https://shop.test/rahoitus', keywords: '' }]);
+    // The missing endpoint is tried once, not again for the pages.
+    expect(calls.filter((u) => u.includes('/omnibox/config/'))).toHaveLength(1);
+  });
+
   it('answers from remembered settings at once and refreshes behind', async () => {
     const memory = new Map<string, string>();
     const storage = { getItem: (k: string) => memory.get(k) ?? null, setItem: (k: string, v: string) => { memory.set(k, v); } };

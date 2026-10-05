@@ -88,10 +88,19 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
   const fetchConfig = async (): Promise<SearchConfig> => {
     let next: SearchConfig | null = null;
     if (!legacy) {
-      const res = await doFetch(`${apiBase}/api/public/omnibox/config/${id}?${withSdk('')}`, { credentials: 'omit' });
-      if (res.ok) next = normalizeConfig(toolId, await res.json());
-      else if (res.status === 404) legacy = true;
-      else throw new AgenticSearchError(`Settings request failed: ${res.status}`, res.status);
+      // A server without this endpoint answers 404, and from another origin
+      // the browser may not even show that: a "not found" page carries no
+      // CORS headers, so the request simply fails. Either way the settings
+      // are then read from the whole tool document instead.
+      let res: Response | null = null;
+      try {
+        res = await doFetch(`${apiBase}/api/public/omnibox/config/${id}?${withSdk('')}`, { credentials: 'omit' });
+      } catch { legacy = true; }
+      if (res) {
+        if (res.ok) next = normalizeConfig(toolId, await res.json());
+        else if (res.status === 404) legacy = true;
+        else throw new AgenticSearchError(`Settings request failed: ${res.status}`, res.status);
+      }
     }
     if (!next) {
       next = configFromToolDoc(toolId, await fetchLegacyDoc());
@@ -192,7 +201,8 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
               const body = await getJson(`${apiBase}/api/public/omnibox/config/${id}?${withSdk('part=pages')}`);
               return pagesFromWire(body?.pages);
             } catch (error) {
-              if (!(error instanceof AgenticSearchError) || error.status !== 404) return [];
+              // 404, or a request the browser would not let through (see fetchConfig): try the tool document.
+              if (error instanceof AgenticSearchError && error.status !== 404) return [];
               legacy = true;
             }
           }
