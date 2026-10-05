@@ -4,7 +4,9 @@ You are adding Serviceform AgenticSearch to a website. It is made for car sales,
 
 ## 0. What you need from the user
 
-One value: the **search tool id** (20 letters and digits, for example `aB3dE5fG7hJ9kL1mN2pQ`). It is in the Serviceform dashboard under Tools > Search box > Install. If you do not have it, ask for it and stop. Never guess an id.
+One value: the **search tool id** (20 letters and digits, for example `aB3dE5fG7hJ9kL1mN2pQ`). It is in the Serviceform dashboard: Tools > the AI Agentic Search tool > Install. If you do not have it, ask for it and stop. Never guess an id.
+
+If the user has no Serviceform account, product index or knowledge base yet, you cannot create those for them. Send them to [docs/quickstart/account.md](docs/quickstart/account.md) (create an account at https://dash.serviceform.com/signup, index the catalogue, create a knowledge base, create the search tool) and continue once they have the id.
 
 It is a public identifier, safe to put in HTML. There is no API key or secret. A site that does not have a Serviceform search tool yet starts at https://www.serviceform.com/industries/automotive/ai-search/
 

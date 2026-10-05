@@ -8,7 +8,9 @@ See it in action and book a demo on your own catalogue: [Serviceform AgenticSear
 
 ## Set it up in a minute
 
-You need one value: your **search tool id** (Serviceform dashboard: Tools > Search box > Install). It is public; there is no API key.
+You need one value: your **search tool id**. It is public; there is no API key.
+
+No Serviceform account yet? [Create an account, index your catalogue, connect a knowledge base and get your tool id](docs/quickstart/account.md). It takes a few minutes, or [Serviceform sets it up for you](https://www.serviceform.com/industries/automotive/ai-search/).
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@serviceform/agenticsearch@0/dist/agenticsearch.min.css">
@@ -22,7 +24,7 @@ You need one value: your **search tool id** (Serviceform dashboard: Tools > Sear
 <script src="https://cdn.jsdelivr.net/npm/@serviceform/agenticsearch@0/dist/agenticsearch.prebuilt.min.js" defer></script>
 ```
 
-Guides: [HTML](docs/quickstart/html.md) · [Astro](docs/quickstart/astro.md) · [React / Next.js](docs/quickstart/react.md) · [Vue / Nuxt](docs/quickstart/vue.md) · [WordPress](docs/quickstart/wordpress.md) · [Shopify](docs/quickstart/shopify.md) · [PHP](php/README.md)
+Guides: [Account, index and knowledge base](docs/quickstart/account.md) · [HTML](docs/quickstart/html.md) · [Astro](docs/quickstart/astro.md) · [React / Next.js](docs/quickstart/react.md) · [Vue / Nuxt](docs/quickstart/vue.md) · [WordPress](docs/quickstart/wordpress.md) · [Shopify](docs/quickstart/shopify.md) · [PHP](php/README.md)
 
 ### On Shopify or WordPress?
 

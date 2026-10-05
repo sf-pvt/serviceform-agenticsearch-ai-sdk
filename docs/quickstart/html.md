@@ -1,5 +1,7 @@
 # Plain HTML and server-rendered sites
 
+You need a search tool ID first: see [account, index and knowledge base](account.md).
+
 Works with anything that outputs HTML: static sites, Django, Rails, Laravel, Astro, Hugo, Eleventy.
 
 ## 1. Header box on every page, results on one page

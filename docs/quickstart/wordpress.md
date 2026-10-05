@@ -7,7 +7,7 @@ Install or update the plugin first (Serviceform AgenticSearch is being rolled ou
 ## 1. Turn it on
 
 1. In WordPress admin open **Serviceform** settings.
-2. Under **Serviceform AgenticSearch**, tick **Enable AgenticSearch features**, paste your **Search tool ID** (Serviceform dashboard: Tools > Search box > Install) and save.
+2. Under **Serviceform AgenticSearch**, tick **Enable AgenticSearch features**, paste your **Search tool ID** (Serviceform dashboard: Tools > AI Agentic Search > Install; [how to get one](account.md)) and save.
 
 Nothing changes on the site until you place the search with one of the options below. Untick **Enable AgenticSearch features** to remove everything again: no files are loaded and the shortcode, block and widgets print nothing.
 

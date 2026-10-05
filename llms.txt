@@ -2,7 +2,7 @@
 
 > Search for any website, powered by a Serviceform search tool: instant results, faceted results pages and AI answers. Made for car sales, real estate, education, e-commerce and site search in general. One script and one stylesheet for a ready-made search, or widgets and headless connectors for a custom one. JavaScript (`@serviceform/agenticsearch`, with React and Vue bindings at `/react` and `/vue`) and PHP (`serviceform/agenticsearch`).
 
-The only value a site needs is its search tool id (public, from the Serviceform dashboard: Tools > Search box > Install). There is no API key.
+The only value a site needs is its search tool id (public, from the Serviceform dashboard: Tools > AI Agentic Search > Install; setup steps in docs/quickstart/account.md). There is no API key.
 
 Minimal setup on any site:
 
@@ -21,6 +21,8 @@ Product page: https://www.serviceform.com/industries/automotive/ai-search/
 - [README.md](README.md): overview, widgets, connectors, client
 
 ## Guides
+
+- [Account, product index, knowledge base and search tool](docs/quickstart/account.md): what has to exist in Serviceform before any snippet works, and where the tool id comes from
 
 - [Plain HTML and server-rendered sites](docs/quickstart/html.md)
 - [Astro](docs/quickstart/astro.md)

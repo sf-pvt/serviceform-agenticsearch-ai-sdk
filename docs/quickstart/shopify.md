@@ -8,7 +8,7 @@ Install the app first (Serviceform AgenticSearch is being rolled out in the app;
 
 1. Online Store > Themes > **Customize**.
 2. Open **App embeds** and switch on **AgenticSearch header bar**.
-3. Paste your **Search tool ID** (Serviceform dashboard: Tools > Search box > Install).
+3. Paste your **Search tool ID** (Serviceform dashboard: Tools > AI Agentic Search > Install; [how to get one](account.md)).
 4. Choose **Box** (field with instant results) or **Modal** (button that opens the full search).
 
 It replaces the theme's own search control. If the Serviceform search cannot start, the theme's control is shown again.
