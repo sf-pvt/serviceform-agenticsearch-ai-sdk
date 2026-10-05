@@ -67,7 +67,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sf-pvt/serviceform-agenticsearch-sdk.git",
+    "url": "git+https://github.com/sf-pvt/serviceform-agenticsearch-ai-sdk.git",
     "directory": "packages/agenticsearch"
   },
   "keywords": [
@@ -105,8 +105,8 @@
       "optional": true
     }
   },
-  "homepage": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk",
+  "homepage": "https://github.com/sf-pvt/serviceform-agenticsearch-ai-sdk",
   "bugs": {
-    "url": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk/issues"
+    "url": "https://github.com/sf-pvt/serviceform-agenticsearch-ai-sdk/issues"
   }
 }

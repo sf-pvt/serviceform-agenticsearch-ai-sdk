@@ -33,7 +33,7 @@ Paste this into Claude Code, Cursor or Copilot in your project:
 
 ```text
 Add Serviceform AgenticSearch to this site. My search tool id is TOOL_ID.
-Read https://raw.githubusercontent.com/sf-pvt/serviceform-agenticsearch-sdk/main/AGENTS.md and follow it:
+Read https://raw.githubusercontent.com/sf-pvt/serviceform-agenticsearch-ai-sdk/main/AGENTS.md and follow it:
 put a search box in the header on every page and a results page at /search,
 then run the verification steps from that file and tell me the results.
 ```
