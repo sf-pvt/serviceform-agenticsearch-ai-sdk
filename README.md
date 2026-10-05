@@ -2,6 +2,8 @@
 
 Search for any website, powered by a Serviceform search tool: instant results, faceted results pages, and AI answers that read what the visitor means ("red volvo under 30k" becomes a colour, a price and a make).
 
+See it in action and book a demo on your own catalogue: [Serviceform AgenticSearch](https://www.serviceform.com/industries/automotive/ai-search/).
+
 ## Set it up in a minute
 
 You need one value: your **search tool id** (Serviceform dashboard: Tools > Search box > Install). It is public; there is no API key.

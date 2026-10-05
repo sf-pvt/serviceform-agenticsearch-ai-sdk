@@ -6,7 +6,7 @@ You are adding Serviceform search to a website. Follow this file top to bottom. 
 
 One value: the **search tool id** (20 letters and digits, for example `aB3dE5fG7hJ9kL1mN2pQ`). It is in the Serviceform dashboard under Tools > Search box > Install. If you do not have it, ask for it and stop. Never guess an id.
 
-It is a public identifier, safe to put in HTML. There is no API key or secret.
+It is a public identifier, safe to put in HTML. There is no API key or secret. A site that does not have a Serviceform search tool yet starts at https://www.serviceform.com/industries/automotive/ai-search/
 
 ## 1. Pick the integration
 

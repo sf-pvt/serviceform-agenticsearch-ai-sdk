@@ -13,6 +13,8 @@ Minimal setup on any site:
 <script src="https://cdn.jsdelivr.net/npm/@serviceform/agenticsearch@0/dist/agenticsearch.prebuilt.min.js" defer></script>
 ```
 
+Product page: https://www.serviceform.com/industries/automotive/ai-search/
+
 ## Start here
 
 - [AGENTS.md](AGENTS.md): step-by-step instructions for AI coding agents, every option, rules, verification, troubleshooting
