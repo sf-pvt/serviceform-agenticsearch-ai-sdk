@@ -6,7 +6,7 @@ npm install @serviceform/agenticsearch
 
 ## 1. One component
 
-Create `src/components/AgenticSearch.astro`. It renders the placeholder shell on the server (so nothing shifts while the page loads), bundles the stylesheet with your site's CSS, and mounts in the browser. It also works with view transitions (`<ClientRouter />`).
+Create `src/components/AgenticSearch.astro`. It renders the placeholder shell on the server (so nothing shifts while the page loads), bundles the stylesheet with your site's CSS, and mounts in the browser.
 
 ```astro
 ---
@@ -83,6 +83,6 @@ That is all. No integration, no adapter, no `client:` directive: the component i
 
 - The script in the component is bundled once by Astro however many times the component is used.
 - The results page reads and writes the query string itself (`?q=...&f.brand=...`).
-- Works next to Tailwind (`@astrojs/tailwind` or Tailwind 4) without extra configuration.
+- Works next to Tailwind without extra configuration.
 
 All options: [AGENTS.md](../../AGENTS.md#3-every-option).

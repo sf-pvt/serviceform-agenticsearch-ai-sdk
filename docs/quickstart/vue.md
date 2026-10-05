@@ -24,7 +24,7 @@ import '@serviceform/agenticsearch/css';
 ```
 
 - `layout` is `box`, `modal`, `page` or `section`. Props are the `mount()` keys in [AGENTS.md](../../AGENTS.md#3-every-option), in kebab-case in templates.
-- It renders a placeholder shell first (on the server too), then the search takes its place in the browser. No `<ClientOnly>` needed in Nuxt.
+- It renders a placeholder shell first (on the server too), then the search takes its place in the browser, so it does not need `<ClientOnly>`.
 - `@mount="(search) => ..."` hands you the handle; with a template ref, `searchRef.value.open()` and `.close()` drive the modal.
 - The `page` layout reads and writes the query string itself.
 

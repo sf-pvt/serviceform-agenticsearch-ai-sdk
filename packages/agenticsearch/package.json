@@ -54,6 +54,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/*.map",
     "README.md",
     "LICENSE"
   ],
@@ -61,7 +62,8 @@
     "build": "node scripts/build-css.mjs --source-only && tsup && node scripts/build-css.mjs",
     "pretest": "node scripts/build-css.mjs --source-only",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepack": "cp ../../README.md README.md"
   },
   "repository": {
     "type": "git",
@@ -103,5 +105,8 @@
       "optional": true
     }
   },
-  "homepage": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk"
+  "homepage": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk",
+  "bugs": {
+    "url": "https://github.com/sf-pvt/serviceform-agenticsearch-sdk/issues"
+  }
 }

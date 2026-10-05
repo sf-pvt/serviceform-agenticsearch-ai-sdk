@@ -2,7 +2,7 @@
 
 The search ships with the [Serviceform app for Shopify](https://apps.shopify.com/serviceform-app) as two theme blocks. Its files are served from Shopify's CDN.
 
-Install the app first: https://apps.shopify.com/serviceform-app
+Install the app first (Serviceform AgenticSearch is being rolled out in the app; if you do not see its blocks in the theme editor, write to support@serviceform.com): https://apps.shopify.com/serviceform-app
 
 ## 1. Header search
 

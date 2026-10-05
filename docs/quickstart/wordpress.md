@@ -2,7 +2,7 @@
 
 The search is part of the [Serviceform plugin for WordPress](https://wordpress.org/plugins/serviceform-pixel/). Its files are served from your own site.
 
-Install or update the plugin first: https://wordpress.org/plugins/serviceform-pixel/
+Install or update the plugin first (Serviceform AgenticSearch is being rolled out in the plugin; if you do not see its settings after updating, write to support@serviceform.com): https://wordpress.org/plugins/serviceform-pixel/
 
 ## 1. Turn it on
 
