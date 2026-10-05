@@ -1,7 +1,7 @@
 {
   "name": "serviceform-agenticsearch",
   "private": true,
-  "description": "Serviceform AgenticSearch: search widgets, a search client and ready-made search layouts for any website.",
+  "description": "Serviceform AgenticSearch: AI search for any website. Made for car sales, real estate, education, e-commerce and site search in general.",
   "license": "SEE LICENSE IN LICENSE",
   "workspaces": [
     "packages/*"

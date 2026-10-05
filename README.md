@@ -2,6 +2,8 @@
 
 Search for any website, powered by a Serviceform search tool: instant results, faceted results pages, and AI answers that read what the visitor means ("red volvo under 30k" becomes a colour, a price and a make).
 
+Made for car sales, real estate, education, e-commerce and site search in general. It reads cars, properties, courses and products the way each catalogue describes them, and answers questions from the site's own pages.
+
 See it in action and book a demo on your own catalogue: [Serviceform AgenticSearch](https://www.serviceform.com/industries/automotive/ai-search/).
 
 ## Set it up in a minute

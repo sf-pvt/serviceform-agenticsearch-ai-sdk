@@ -5,6 +5,8 @@ pre-rendered shell (no layout shift), inlines cached settings so the first
 render needs no settings request, and offers a small client for the search API.
 PHP 7.4+, no runtime dependencies (cURL when loaded, PHP streams otherwise).
 
+Made for car sales, real estate, education, e-commerce and site search in general.
+
 ## Install
 
 ```bash

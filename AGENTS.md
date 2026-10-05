@@ -1,6 +1,6 @@
 # Serviceform AgenticSearch: instructions for AI coding agents
 
-You are adding Serviceform search to a website. Follow this file top to bottom. Everything here is copy-paste complete; do not invent option names.
+You are adding Serviceform AgenticSearch to a website. It is made for car sales, real estate, education, e-commerce and site search in general. Follow this file top to bottom. Everything here is copy-paste complete; do not invent option names.
 
 ## 0. What you need from the user
 

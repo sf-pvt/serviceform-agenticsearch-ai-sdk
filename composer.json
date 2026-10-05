@@ -1,9 +1,16 @@
 {
     "name": "serviceform/agenticsearch",
-    "description": "Serviceform AgenticSearch for PHP: server-side mount markup, cached settings and a small search API client.",
+    "description": "Serviceform AgenticSearch for PHP: AI search for any website. Made for car sales, real estate, education, e-commerce and site search in general.",
     "type": "library",
     "license": "proprietary",
-    "keywords": ["search", "ecommerce", "ai", "serviceform", "site-search", "faceted-search"],
+    "keywords": [
+        "search",
+        "ecommerce",
+        "ai",
+        "serviceform",
+        "site-search",
+        "faceted-search"
+    ],
     "homepage": "https://www.serviceform.com/industries/automotive/ai-search/",
     "require": {
         "php": ">=7.4",

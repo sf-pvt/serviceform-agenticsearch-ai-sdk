@@ -1,7 +1,7 @@
 {
   "name": "@serviceform/agenticsearch",
   "version": "0.1.2",
-  "description": "Serviceform AgenticSearch: a search client, composable widgets with headless connectors, and ready-made box, modal and full-page search for any website.",
+  "description": "Serviceform AgenticSearch: AI search for any website, with a ready-made search box and results page, widgets, React and Vue bindings. Made for car sales, real estate, education, e-commerce and site search in general.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",
   "sideEffects": [
@@ -79,7 +79,13 @@
     "ecommerce",
     "serviceform",
     "react",
-    "vue"
+    "vue",
+    "automotive",
+    "car-search",
+    "real-estate",
+    "property-search",
+    "education",
+    "site-search"
   ],
   "devDependencies": {
     "@types/react": "^19.3.0",

@@ -1,6 +1,6 @@
 # Serviceform AgenticSearch
 
-> Search for any website, powered by a Serviceform search tool: instant results, faceted results pages and AI answers. One script and one stylesheet for a ready-made search, or widgets and headless connectors for a custom one. JavaScript (`@serviceform/agenticsearch`, with React and Vue bindings at `/react` and `/vue`) and PHP (`serviceform/agenticsearch`).
+> Search for any website, powered by a Serviceform search tool: instant results, faceted results pages and AI answers. Made for car sales, real estate, education, e-commerce and site search in general. One script and one stylesheet for a ready-made search, or widgets and headless connectors for a custom one. JavaScript (`@serviceform/agenticsearch`, with React and Vue bindings at `/react` and `/vue`) and PHP (`serviceform/agenticsearch`).
 
 The only value a site needs is its search tool id (public, from the Serviceform dashboard: Tools > Search box > Install). There is no API key.
 
