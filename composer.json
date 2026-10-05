@@ -4,7 +4,7 @@
     "type": "library",
     "license": "proprietary",
     "keywords": ["search", "ecommerce", "ai", "serviceform", "site-search", "faceted-search"],
-    "homepage": "https://serviceform.com",
+    "homepage": "https://www.serviceform.com/industries/automotive/ai-search/",
     "require": {
         "php": ">=7.4",
         "ext-json": "*"

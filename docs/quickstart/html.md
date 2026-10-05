@@ -78,7 +78,34 @@ For the page layout add the body shell after the field:
 </script>
 ```
 
-## 6. Theme
+## 6. Landing pages and links
+
+Every search has an address. The results page reads its search from the query string, so a link is a landing page:
+
+| Link | Shows |
+|---|---|
+| `/search?q=family+suv` | A search for those words (the words are read into filters) |
+| `/search?f.brand=Volvo` | All Volvos |
+| `/search?f.fuel=ELECTRIC&price_max=30000&sort=price_asc` | Electric cars up to 30 000, cheapest first |
+| `/search?f.condition=demo&sort=newest` | Demo cars, latest added first |
+| `/search?f.brand=Volvo\|Audi&r.year=2020\|` | Volvo or Audi, from 2020 |
+
+Parameters: `q` (words), `f.<filter>=a|b` (values, `|` between them), `r.<filter>=min|max` (a numeric range, either side may be empty), `price_min`, `price_max`, `sort` (`relevance`, `price_asc`, `price_desc`, `year_desc`, `year_asc`, `mileage_asc`, `newest`, `name_asc`), `in_stock=1`, `page`. Filter names and values are the ones your catalogue has: set the filters by hand on the results page and copy the address.
+
+Use these links in menus, ads, emails and campaign pages.
+
+For a page of its own with a clean address (say `/used-volvo`), give the search its starting point in the markup instead. The address stays as it is, and the visitor can still change the filters:
+
+```html
+<h1>Used Volvo cars</h1>
+<div data-sf-agenticsearch data-tool-id="TOOL_ID" data-layout="page"
+     data-state="f.brand=Volvo&f.condition=used&sort=price_asc"
+     data-routing="false"></div>
+```
+
+`data-routing="false"` keeps the visitor's filter changes out of the address; leave it off if you want them shareable. A search in the page's own address always wins over `data-state`.
+
+## 7. Theme
 
 ```css
 .sfas {

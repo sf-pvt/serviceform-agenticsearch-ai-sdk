@@ -80,6 +80,10 @@ ServiceformAgenticSearch.mount({ toolId: 'TOOL_ID', target: '#search', layout: '
 ServiceformAgenticSearch.mountAll(); // after adding markup later
 ```
 
+### Landing pages
+
+Every search has an address, so a link is a landing page: `/search?f.brand=Volvo&price_max=30000&sort=price_asc`. For a page with a clean address of its own, give the search its starting point with `data-state="f.brand=Volvo&sort=price_asc"`. See [landing pages and links](docs/quickstart/html.md#6-landing-pages-and-links).
+
 ### No flash
 
 - Load the stylesheet in the `<head>` and render the placeholder shell inside the mount element (the PHP renderer and the plugins do this), so the space is taken before the script runs.

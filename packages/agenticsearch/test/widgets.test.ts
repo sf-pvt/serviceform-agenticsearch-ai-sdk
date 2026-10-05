@@ -212,4 +212,22 @@ describe('prebuilt mount', () => {
     expect(mountAll()).toHaveLength(0);
     expect(document.querySelector('b')!.textContent).toBe('theirs');
   });
+
+  it('opens a landing page on the search it was given, and lets the address override it', async () => {
+    const { fetch, calls } = fakeFetch({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
+    globalThis.fetch = fetch;
+    document.body.innerHTML = '<div id="lp" data-sf-agenticsearch data-tool-id="toolL" data-layout="page" data-routing="false" data-state="f.brand=Volvo&f.fuel=ELECTRIC&price_max=30000&sort=price_asc" data-api-base="https://api.test"></div>';
+    const [landing] = mountAll();
+    await tick(10);
+    expect(decodeURIComponent(calls.find((c) => c.url.includes('/browse/'))!.url)).toContain('f.brand=Volvo&f.fuel=ELECTRIC&price_max=30000&sort=price_asc');
+    expect(window.location.search).toBe('');
+    landing.destroy();
+
+    window.history.replaceState(null, '', '/?f.brand=Audi');
+    const other = mount({ toolId: 'toolL2', target: host(), layout: 'page', apiBase: 'https://api.test', initialState: { filters: { brand: ['Volvo'] } } });
+    await tick(10);
+    expect(other.instance.state.filters).toEqual({ brand: ['Audi'] });
+    other.destroy();
+    window.history.replaceState(null, '', '/');
+  });
 });

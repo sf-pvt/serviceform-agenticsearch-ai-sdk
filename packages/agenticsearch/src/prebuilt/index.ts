@@ -1,5 +1,6 @@
 import { serviceformSearch } from '../client';
-import type { SearchClient, SearchConfig } from '../client/types';
+import { queryToState } from '../client/query';
+import type { SearchClient, SearchConfig, SearchState } from '../client/types';
 import { AgenticSearch } from '../core/agenticsearch';
 import { button, el, icon } from '../lib/dom';
 import { stringsFor } from '../lib/i18n';
@@ -29,6 +30,13 @@ export interface MountOptions {
   placeholder?: string;
   /** Keep the search in the address (page layout). On by default. */
   routing?: boolean;
+  /**
+   * The search to open with, for a landing page: "used Volvos under 30 000"
+   * as a page of its own. An object, or the same text a results page puts in
+   * its address (`f.brand=Volvo&price_max=30000&sort=price_asc`). A search in
+   * the page's own address still wins over it.
+   */
+  initialState?: Partial<SearchState> | string;
   testMode?: boolean;
 }
 
@@ -81,8 +89,10 @@ function theme(element: HTMLElement, instance: AgenticSearch, options: MountOpti
 }
 
 function newInstance(options: MountOptions, extra: { routing?: boolean; results?: boolean }): AgenticSearch {
+  const initial = typeof options.initialState === 'string' ? queryToState(options.initialState, options.searchPageParam || 'q') : options.initialState;
   return new AgenticSearch({
     searchClient: clientFor(options),
+    initialState: initial,
     routing: extra.routing ? { queryParam: options.searchPageParam || 'q' } : false,
     results: extra.results,
     searchOnStart: extra.results !== false,
@@ -235,6 +245,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.facets) options.facets = d.facets.split(',').map((f) => f.trim()).filter(Boolean);
   if (d.placeholder) options.placeholder = d.placeholder;
   if (d.routing) options.routing = d.routing !== 'false';
+  if (d.state) options.initialState = d.state;
   if (d.test === 'true') options.testMode = true;
   return options;
 }

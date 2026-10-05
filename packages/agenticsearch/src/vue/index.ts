@@ -112,6 +112,7 @@ export const AgenticSearch = defineComponent({
     facets: Array as PropType<string[]>,
     placeholder: String,
     routing: { type: Boolean as PropType<boolean | undefined>, default: undefined },
+    initialState: [Object, String] as PropType<MountOptions['initialState']>,
     testMode: Boolean,
   },
   emits: { mount: (_mounted: Mounted) => true },

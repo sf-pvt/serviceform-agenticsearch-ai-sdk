@@ -33,6 +33,7 @@ The prebuilt bundle mounts every element carrying `data-sf-agenticsearch` when t
      data-search-param="q"         <!-- q by default, "s" on WordPress -->
      data-per-page="24"            <!-- page layout, 1..48 -->
      data-facets="brand,price"     <!-- optional override of the tool's filter list -->
+     data-state="f.brand=Volvo&sort=price_asc"  <!-- optional: the search a landing page opens with -->
      data-placeholder="Search"     <!-- optional -->
      data-api-base="https://dash.serviceform.com"> <!-- optional -->
   <!-- optional pre-rendered shell (see 3); replaced on mount -->

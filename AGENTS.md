@@ -60,6 +60,7 @@ Attributes on the mount element (or keys of `ServiceformAgenticSearch.mount({...
 | `data-facets` | `facets` | comma-separated filter ids, in order | the tool's setting |
 | `data-placeholder` | `placeholder` | text | the tool's placeholder |
 | `data-routing` | `routing` | `false` stops the page layout writing to the URL | `true` |
+| `data-state` | `initialState` | The search a page opens with, in address format: `f.brand=Volvo&price_max=30000&sort=price_asc`. For landing pages | none |
 | `data-api-base` | `apiBase` | API origin | `https://dash.serviceform.com` |
 
 Layouts:
@@ -67,6 +68,10 @@ Layouts:
 - `modal`: a button that opens the full search over the page (also Cmd/Ctrl+K). For headers with little room.
 - `page`: field, AI answer, filters, results. Keeps the search in the URL. One per page.
 - `section`: a large field with example questions under it. For a hero.
+
+### Landing pages
+
+A results-page link with parameters is a landing page: `/search?f.brand=Volvo&price_max=30000&sort=price_asc`. For a page with its own clean address, put the same string in `data-state` on a `page` mount. The parameter list is in [docs/quickstart/html.md](docs/quickstart/html.md#6-landing-pages-and-links).
 
 ## 4. Rules
 
