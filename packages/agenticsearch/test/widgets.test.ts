@@ -230,4 +230,23 @@ describe('prebuilt mount', () => {
     other.destroy();
     window.history.replaceState(null, '', '/');
   });
+
+  it('keeps a server-rendered shell up until the settings arrive, then draws in the right language', async () => {
+    let release: (v: unknown) => void = () => {};
+    const gate = new Promise((r) => { release = r; });
+    const { fetch } = fakeFetch({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': async () => { await gate; return configBody(); } });
+    globalThis.fetch = fetch;
+    document.body.innerHTML = '<div id="s" class="sfas sfas-shell sfas-shell--box" data-sf-agenticsearch data-tool-id="toolS" data-layout="box" data-api-base="https://api.test"><div class="sfas-shell-field"><span class="sfas-shell-text">Hae</span></div></div>';
+    const [m] = mountAll();
+    await tick(20);
+    expect(document.querySelector('#s .sfas-shell-field')).not.toBeNull();
+    expect(document.querySelector('#s .sfas-input')).toBeNull();
+    release(null);
+    await tick(20);
+    expect(document.querySelector('#s .sfas-shell-field')).toBeNull();
+    expect((document.querySelector('#s .sfas-input') as HTMLInputElement).placeholder).toBe('Hae autoa');
+    expect(mountAll()).toHaveLength(0);
+    m.destroy();
+    expect(document.querySelector('#s .sfas-input')).toBeNull();
+  });
 });

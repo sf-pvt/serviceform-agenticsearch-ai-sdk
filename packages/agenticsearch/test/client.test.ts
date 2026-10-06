@@ -72,9 +72,10 @@ describe('settings', () => {
     const { client, calls } = clientWith({ '/omnibox/config/': configBody() });
     const config = await client.getConfig();
     expect(config).toMatchObject({ language: 'fi', accent: '#123456', questions: ['Mikä auto perheelle?'] });
-    expect(calls[0].url).toContain('/api/public/omnibox/config/tool1');
+    expect(calls.some((c) => c.url.includes('/api/public/omnibox/config/tool1'))).toBe(true);
+    const before = calls.length;
     await client.getConfig();
-    expect(calls).toHaveLength(1);
+    expect(calls).toHaveLength(before);
   });
 
   it('falls back to the whole tool document on servers without the endpoint', async () => {
@@ -103,6 +104,13 @@ describe('settings', () => {
     expect(await client.getPages()).toEqual([{ label: 'Rahoitus', url: 'https://shop.test/rahoitus', keywords: '' }]);
     // The missing endpoint is tried once, not again for the pages.
     expect(calls.filter((u) => u.includes('/omnibox/config/'))).toHaveLength(1);
+  });
+
+  it('asks for the settings and the tool document together on a cold start, and makes one document request in all', async () => {
+    const { client, calls } = clientWith({ '/omnibox/config/': status(404), '/api/public/tid/': { type: 'searchbox', searchbox: { language: 'fi', pages: [{ l: 'A', h: 'https://shop.test/a' }] } } });
+    await client.getConfig();
+    await client.getPages();
+    expect(calls.filter((c) => c.url.includes('/api/public/tid/'))).toHaveLength(1);
   });
 
   it('answers from remembered settings at once and refreshes behind', async () => {

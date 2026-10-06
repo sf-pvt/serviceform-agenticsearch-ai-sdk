@@ -77,9 +77,13 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
   };
   const withSdk = (qs: string) => `${qs ? `${qs}&` : ''}sdk=${encodeURIComponent(SDK_TAG)}`;
 
-  const fetchLegacyDoc = async () => {
-    legacyDoc = legacyDoc || (await getJson(`${apiBase}/api/public/tid/${id}`));
-    return legacyDoc;
+  let legacyRequest: Promise<any> | null = null;
+  const fetchLegacyDoc = () => {
+    if (legacyDoc) return Promise.resolve(legacyDoc);
+    if (!legacyRequest) {
+      legacyRequest = getJson(`${apiBase}/api/public/tid/${id}`).then((doc) => { legacyDoc = doc; return doc; }).finally(() => { legacyRequest = null; });
+    }
+    return legacyRequest;
   };
 
   // A plain GET on purpose: the browser's own cache revalidates with the
@@ -87,6 +91,10 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
   // cross-origin preflight on every visit.
   const fetchConfig = async (): Promise<SearchConfig> => {
     let next: SearchConfig | null = null;
+    // The first time, the tool document is asked for at the same time, so a
+    // server without the settings endpoint costs no second round trip. The
+    // document is small and is wanted for the site pages anyway.
+    if (!legacy && !legacyDoc) fetchLegacyDoc().catch(() => { legacyDoc = null; });
     if (!legacy) {
       // A server without this endpoint answers 404, and from another origin
       // the browser may not even show that: a "not found" page carries no

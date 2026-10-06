@@ -54,6 +54,8 @@ const clients = new Map<string, SearchClient>();
 const mounted = new WeakMap<HTMLElement, Mounted>();
 const LAYOUTS: LayoutName[] = ['box', 'modal', 'page', 'section'];
 let shortcutOwner: HTMLElement | null = null;
+// How long a shell may wait for the settings before the search draws with defaults.
+const SETTINGS_WAIT_MS = 1500;
 
 function clientFor(options: MountOptions): SearchClient {
   const key = `${options.apiBase || ''}|${options.toolId}|${options.testMode ? 't' : ''}`;
@@ -195,6 +197,23 @@ export function mount(options: MountOptions): Mounted {
   ensureStyles(element.ownerDocument);
 
   const client = clientFor(options);
+  // Drawn at once when the settings are at hand (inline, remembered, or
+  // given in code). Otherwise the server-rendered shell stays up while they
+  // are fetched, for at most a moment, rather than a box in the wrong
+  // language and colour that changes a second later.
+  if (!client.peekConfig() && element.querySelector('.sfas-shell-field') && !options.config) {
+    const placeholder: Mounted = { element, instance: null as unknown as AgenticSearch, layout: options.layout || 'box', open() {}, close() {}, destroy() { mounted.delete(element); } };
+    mounted.set(element, placeholder);
+    let real: Mounted | null = null;
+    const go = () => {
+      if (mounted.get(element) !== placeholder) return;
+      mounted.delete(element);
+      real = mount(options);
+      Object.assign(placeholder, real, { destroy: () => real?.destroy() });
+    };
+    Promise.race([client.getConfig().catch(() => {}), new Promise((r) => setTimeout(r, SETTINGS_WAIT_MS))]).then(go);
+    return placeholder;
+  }
   const layoutName: LayoutName = options.layout && LAYOUTS.includes(options.layout) ? options.layout : (client.peekConfig()?.layout as LayoutName) || 'box';
   // Whatever the server rendered to hold the space (the shell) gives way now.
   element.textContent = '';
