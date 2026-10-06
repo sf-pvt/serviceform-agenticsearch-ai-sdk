@@ -51,6 +51,18 @@ cp package/dist/agenticsearch.min.css public/assets/agenticsearch.css
 
 ## 4. No flash while loading
 
+Two things decide how the first visit feels: whether the space is reserved before the script runs, and whether the settings are already in the page.
+
+**Settings in the page.** Without them the browser fetches the tool's settings first and shows the placeholder shell until they arrive. Fetch them on your server when you render the page and write them into it:
+
+```html
+<script type="application/json" data-sf-agenticsearch-config="TOOL_ID">{ ...settings... }</script>
+```
+
+The settings are what `GET https://dash.serviceform.com/api/public/omnibox/config/TOOL_ID` returns; cache the response on your server for a few hours. The PHP package (`Renderer::mount()` with `config`) and the Astro component do this for you. The SDK still checks for newer settings in the background.
+
+**The shell.**
+
 Render the placeholder shell inside the mount element. The stylesheet sizes it, so the layout does not shift when the script takes over.
 
 ```html

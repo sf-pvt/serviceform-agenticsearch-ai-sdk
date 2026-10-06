@@ -91,7 +91,7 @@ Every search has an address, so a link is a landing page: `/search?f.brand=Volvo
 ### No flash
 
 - Load the stylesheet in the `<head>` and render the placeholder shell inside the mount element (the PHP renderer and the plugins do this), so the space is taken before the script runs.
-- Write the tool's settings into the page as `<script type="application/json" data-sf-agenticsearch-config="TOOL_ID">` and the first render makes no settings request.
+- Write the tool's settings into the page as `<script type="application/json" data-sf-agenticsearch-config="TOOL_ID">` and the first render makes no settings request. The Astro component, the PHP renderer and the WordPress plugin do this for you.
 - Without inline settings they are fetched once, remembered in `localStorage`, used at once on the next visit and refreshed in the background.
 
 ## Widgets
