@@ -3,7 +3,10 @@
  * Everything is under .sfas and reads its look from a few custom properties,
  * so a site themes it by setting those on .sfas (or any parent):
  *   --sfas-accent, --sfas-radius, --sfas-font, --sfas-text, --sfas-muted,
- *   --sfas-border, --sfas-surface, --sfas-soft, --sfas-card-min
+ *   --sfas-border, --sfas-surface, --sfas-soft, --sfas-card-min,
+ *   --sfas-sticky-top (how far under the top edge the filters stop when the
+ *   page scrolls; 0 where the search sits at the very top of a scrolling box,
+ *   or the filters start lower than the field)
  */
 :root { --sfas-css: 1; }
 
@@ -17,6 +20,7 @@
   --sfas-surface: #fff;
   --sfas-soft: #f4f5f7;
   --sfas-card-min: 210px;
+  --sfas-sticky-top: 12px;
   --sfas-r-s: min(var(--sfas-radius), 8px);
   --sfas-r-m: min(var(--sfas-radius), 14px);
   --sfas-pill: calc(var(--sfas-radius) * 55);
@@ -230,7 +234,7 @@ html.sfas-lock { overflow: hidden; }
 .sfas-page-body { display: grid; grid-template-columns: 236px minmax(0, 1fr); gap: 22px; align-items: start; }
 .sfas-page--nofilters .sfas-page-body { grid-template-columns: minmax(0, 1fr); }
 .sfas-page--nofilters .sfas-page-side, .sfas-page--nofilters .sfas-filter-button { display: none; }
-.sfas-page-side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; padding: 6px 14px 14px; background: var(--sfas-surface); border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-m); }
+.sfas-page-side { position: sticky; top: var(--sfas-sticky-top); max-height: calc(100vh - 24px); overflow-y: auto; padding: 6px 14px 14px; background: var(--sfas-surface); border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-m); }
 .sfas-page-side > .sfas-page-count { display: block; padding: 12px 0 0; font-size: 15px; font-weight: 700; color: var(--sfas-text); white-space: normal; }
 .sfas-page-sortgroup { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
 .sfas .sfas-page-sortgroup .sfas-sort { display: block; width: 100%; }
