@@ -144,6 +144,14 @@ describe('settings', () => {
 
   it('says a document that is not a search tool is not one', () => {
     expect(configFromToolDoc('x', { type: 'form-endpoint', searchbox: {} })).toBeNull();
+    // Where a result opens, and the extra button when nothing is found, from the document's flat keys.
+    const plain = configFromToolDoc('x', { type: 'searchbox', searchbox: {} })!;
+    expect(plain.openInNewTab).toBe(true);
+    expect(plain.emptyButton).toBeNull();
+    const set = configFromToolDoc('x', { type: 'searchbox', searchbox: { openInNewTab: false, emptyButton: true, emptyButtonLabel: 'Talk to us', emptyButtonSelector: '#chat' } })!;
+    expect(set.openInNewTab).toBe(false);
+    expect(set.emptyButton).toEqual({ label: 'Talk to us', selector: '#chat' });
+    expect(configFromToolDoc('x', { type: 'searchbox', searchbox: { emptyButton: true } })!.emptyButton).toEqual({ label: '', selector: '.sf-bubble-wrapper' });
     expect(configFromToolDoc('x', '404')).toBeNull();
   });
 });

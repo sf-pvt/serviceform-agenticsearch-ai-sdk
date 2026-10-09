@@ -24,6 +24,8 @@ export interface AgenticSearchOptions {
   language?: string;
   /** Ask the AI when a search is submitted (Enter). Follows the tool's setting by default. */
   ai?: boolean;
+  /** Open results in a new tab. Follows the tool's setting by default (on). */
+  openInNewTab?: boolean;
   /** Words to use instead of the built-in ones. */
   strings?: Partial<Strings>;
   /** Search as soon as `start()` is called. On by default. */
@@ -286,6 +288,11 @@ export class AgenticSearch {
 
   aiEnabled(): boolean {
     return this.options.ai !== undefined ? this.options.ai : this.config.ai;
+  }
+
+  /** Whether a result opens in a new tab: the option on this instance, else the tool's setting. */
+  opensInNewTab(): boolean {
+    return this.options.openInNewTab !== undefined ? this.options.openInNewTab : this.config.openInNewTab;
   }
 
   /**

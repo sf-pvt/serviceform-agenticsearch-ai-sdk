@@ -1,6 +1,6 @@
 {
   "name": "@serviceform/agenticsearch",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Serviceform AgenticSearch: AI search for any website, with a ready-made search box and results page, widgets, React and Vue bindings. Made for car sales, real estate, education, e-commerce and site search in general.",
   "license": "SEE LICENSE IN LICENSE",
   "type": "module",

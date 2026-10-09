@@ -1,6 +1,6 @@
 import { connectAiAnswer, connectSuggestedQuestions } from '../connectors';
 import type { Widget } from '../core/types';
-import { button, clear, el, icon, resolveContainer, type Container } from '../lib/dom';
+import { button, clear, el, icon, openWhere, resolveContainer, type Container } from '../lib/dom';
 import { renderCard } from './card';
 
 export interface AiAnswerParams {
@@ -41,7 +41,7 @@ export function aiAnswer(params: AiAnswerParams): Widget {
       if (links.length) {
         const places = el('div', 'sfas-answer-links');
         for (const link of links.slice(0, 3)) {
-          const a = el('a', '', link.label);
+          const a = openWhere(el('a', '', link.label), instance.opensInNewTab());
           a.href = link.url;
           places.appendChild(a);
         }
@@ -53,7 +53,7 @@ export function aiAnswer(params: AiAnswerParams): Widget {
     root.appendChild(body);
     if (params.showHits && status === 'done' && hits.length) {
       const list = el('ul', 'sfas-hits sfas-hits--rows');
-      hits.forEach((hit, i) => list.appendChild(renderCard(hit, i, { compact: true, fallbackImage: instance.config.fallbackImage, onClick: (h, p) => instance.sendClick(h, p, question) })));
+      hits.forEach((hit, i) => list.appendChild(renderCard(hit, i, { compact: true, fallbackImage: instance.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: (h, p) => instance.sendClick(h, p, question) })));
       root.appendChild(list);
     }
   }, () => clear(root))(params);

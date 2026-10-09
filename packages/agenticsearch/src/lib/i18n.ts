@@ -7,7 +7,7 @@ export interface Strings {
   emptyTitle: string; emptyFor: string; emptyHint: string; showAll: string; filters: string; clear: string; clearFilters: string;
   results: string; result: string; none: string; more: string; fewer: string; loadMore: string; close: string; previous: string; next: string;
   inStock: string; askAi: string; products: string; pages: string; suggestions: string; thinking: string; continuing: string; startOver: string;
-  findValue: string; apply: string; sortBy: string;
+  findValue: string; apply: string; sortBy: string; chat: string;
   sort: Record<string, string>;
   fields: Record<string, string>;
 }
@@ -17,7 +17,7 @@ const EN: Strings = {
   emptyTitle: 'No results', emptyFor: 'No results for {q}', emptyHint: 'Try other words or fewer filters.', showAll: 'Show all results', filters: 'Filters', clear: 'Clear all', clearFilters: 'Clear filters',
   results: '{n} results', result: '1 result', none: 'Nothing matches these filters.', more: 'Show more', fewer: 'Show fewer', loadMore: 'Show more results', close: 'Close', previous: 'Previous', next: 'Next',
   inStock: 'In stock only', askAi: 'Ask AI', products: 'Products', pages: 'Pages', suggestions: 'Suggestions', thinking: 'Thinking', continuing: 'Continuing from', startOver: 'Start over',
-  findValue: 'Search', apply: 'Apply', sortBy: 'Sort by',
+  findValue: 'Search', apply: 'Apply', sortBy: 'Sort by', chat: 'Chat with us',
   sort: { relevance: 'Best match', price_asc: 'Cheapest first', price_desc: 'Most expensive first', year_desc: 'Newest first', year_asc: 'Oldest first', mileage_asc: 'Lowest mileage first', newest: 'Latest added', name_asc: 'Name A to Z' },
   fields: { brand: 'Brand', make: 'Make', vendor: 'Brand', model: 'Model', body_style: 'Body style', car_type: 'Type', listing_type: 'Listing', fuel: 'Fuel', transmission: 'Transmission', drive: 'Drive', condition: 'Condition', colour: 'Colour', color: 'Colour', price: 'Price', year: 'Year', mileage: 'Mileage', seats: 'Seats', beds: 'Beds', doors: 'Doors', category: 'Category', main_category: 'Category', sub_category: 'Subcategory', leaf_category: 'Category', size: 'Size', material: 'Material', availability: 'Availability', city: 'City', type: 'Type', rooms: 'Rooms', area: 'Area', accessories: 'Equipment', gender: 'Gender', rent: 'Rent' },
 };
@@ -27,7 +27,7 @@ const FI: Strings = {
   emptyTitle: 'Ei tuloksia', emptyFor: 'Ei tuloksia haulle {q}', emptyHint: 'Kokeile toista hakusanaa tai vähemmän rajauksia.', showAll: 'Näytä kaikki tulokset', filters: 'Rajaukset', clear: 'Tyhjennä kaikki', clearFilters: 'Tyhjennä rajaukset',
   results: '{n} tulosta', result: '1 tulos', none: 'Näillä rajauksilla ei löytynyt mitään.', more: 'Näytä lisää', fewer: 'Näytä vähemmän', loadMore: 'Näytä lisää tuloksia', close: 'Sulje', previous: 'Edellinen', next: 'Seuraava',
   inStock: 'Vain varastossa', askAi: 'Kysy tekoälyltä', products: 'Tuotteet', pages: 'Sivut', suggestions: 'Ehdotukset', thinking: 'Mietin', continuing: 'Jatkoa kysymykselle', startOver: 'Aloita alusta',
-  findValue: 'Hae', apply: 'Käytä', sortBy: 'Järjestys',
+  findValue: 'Hae', apply: 'Käytä', sortBy: 'Järjestys', chat: 'Kysy chatissa',
   sort: { relevance: 'Osuvin ensin', price_asc: 'Halvin ensin', price_desc: 'Kallein ensin', year_desc: 'Uusin ensin', year_asc: 'Vanhin ensin', mileage_asc: 'Vähiten ajettu ensin', newest: 'Viimeksi lisätty', name_asc: 'Nimi A-Ö' },
   fields: { brand: 'Merkki', make: 'Merkki', vendor: 'Merkki', model: 'Malli', body_style: 'Korimalli', car_type: 'Tyyppi', listing_type: 'Ilmoitus', fuel: 'Käyttövoima', transmission: 'Vaihteisto', drive: 'Vetotapa', condition: 'Kunto', colour: 'Väri', color: 'Väri', price: 'Hinta', year: 'Vuosimalli', mileage: 'Mittarilukema', seats: 'Istuimet', beds: 'Vuodepaikat', doors: 'Ovet', category: 'Kategoria', main_category: 'Kategoria', sub_category: 'Alakategoria', leaf_category: 'Kategoria', size: 'Koko', material: 'Materiaali', availability: 'Saatavuus', city: 'Kaupunki', type: 'Tyyppi', rooms: 'Huoneet', area: 'Pinta-ala', accessories: 'Varusteet', gender: 'Sukupuoli', rent: 'Vuokra' },
 };
@@ -37,7 +37,7 @@ const SV: Strings = {
   emptyTitle: 'Inga träffar', emptyFor: 'Inga träffar för {q}', emptyHint: 'Prova andra ord eller färre filter.', showAll: 'Visa alla träffar', filters: 'Filter', clear: 'Rensa alla', clearFilters: 'Rensa filter',
   results: '{n} träffar', result: '1 träff', none: 'Inget matchar de här filtren.', more: 'Visa fler', fewer: 'Visa färre', loadMore: 'Visa fler träffar', close: 'Stäng', previous: 'Föregående', next: 'Nästa',
   inStock: 'Endast i lager', askAi: 'Fråga AI', products: 'Produkter', pages: 'Sidor', suggestions: 'Förslag', thinking: 'Tänker', continuing: 'Fortsätter från', startOver: 'Börja om',
-  findValue: 'Sök', apply: 'Använd', sortBy: 'Sortera',
+  findValue: 'Sök', apply: 'Använd', sortBy: 'Sortera', chat: 'Chatta med oss',
   sort: { relevance: 'Bästa träff', price_asc: 'Billigast först', price_desc: 'Dyrast först', year_desc: 'Nyast först', year_asc: 'Äldst först', mileage_asc: 'Lägst mätarställning först', newest: 'Senast tillagda', name_asc: 'Namn A-Ö' },
   fields: { ...EN.fields, car_type: 'Typ', listing_type: 'Annons', seats: 'Säten', beds: 'Bäddar', doors: 'Dörrar', accessories: 'Utrustning', rooms: 'Rum', area: 'Yta', brand: 'Märke', make: 'Märke', vendor: 'Märke', model: 'Modell', body_style: 'Kaross', fuel: 'Drivmedel', transmission: 'Växellåda', drive: 'Drivning', condition: 'Skick', colour: 'Färg', color: 'Färg', price: 'Pris', year: 'Årsmodell', mileage: 'Mätarställning', category: 'Kategori', main_category: 'Kategori', sub_category: 'Underkategori', leaf_category: 'Kategori', size: 'Storlek', material: 'Material', availability: 'Tillgänglighet', city: 'Stad', type: 'Typ', gender: 'Kön', rent: 'Hyra' },
 };
@@ -47,7 +47,7 @@ const DE: Strings = {
   emptyTitle: 'Keine Ergebnisse', emptyFor: 'Keine Ergebnisse für {q}', emptyHint: 'Andere Wörter oder weniger Filter versuchen.', showAll: 'Alle Ergebnisse anzeigen', filters: 'Filter', clear: 'Alle löschen', clearFilters: 'Filter löschen',
   results: '{n} Ergebnisse', result: '1 Ergebnis', none: 'Nichts passt zu diesen Filtern.', more: 'Mehr anzeigen', fewer: 'Weniger anzeigen', loadMore: 'Mehr Ergebnisse', close: 'Schließen', previous: 'Zurück', next: 'Weiter',
   inStock: 'Nur vorrätig', askAi: 'KI fragen', products: 'Produkte', pages: 'Seiten', suggestions: 'Vorschläge', thinking: 'Denke nach', continuing: 'Fortsetzung von', startOver: 'Neu beginnen',
-  findValue: 'Suchen', apply: 'Anwenden', sortBy: 'Sortieren',
+  findValue: 'Suchen', apply: 'Anwenden', sortBy: 'Sortieren', chat: 'Mit uns chatten',
   sort: { relevance: 'Beste Treffer', price_asc: 'Günstigste zuerst', price_desc: 'Teuerste zuerst', year_desc: 'Neueste zuerst', year_asc: 'Älteste zuerst', mileage_asc: 'Niedrigster Kilometerstand zuerst', newest: 'Zuletzt hinzugefügt', name_asc: 'Name A-Z' },
   fields: { ...EN.fields, car_type: 'Typ', listing_type: 'Anzeige', seats: 'Sitze', beds: 'Schlafplätze', doors: 'Türen', accessories: 'Ausstattung', rooms: 'Zimmer', area: 'Fläche', brand: 'Marke', make: 'Marke', vendor: 'Marke', model: 'Modell', body_style: 'Karosserie', fuel: 'Kraftstoff', transmission: 'Getriebe', drive: 'Antrieb', condition: 'Zustand', colour: 'Farbe', color: 'Farbe', price: 'Preis', year: 'Baujahr', mileage: 'Kilometerstand', category: 'Kategorie', main_category: 'Kategorie', sub_category: 'Unterkategorie', leaf_category: 'Kategorie', size: 'Größe', material: 'Material', availability: 'Verfügbarkeit', city: 'Stadt', type: 'Typ', gender: 'Geschlecht', rent: 'Miete' },
 };
@@ -57,7 +57,7 @@ const ES: Strings = {
   emptyTitle: 'Sin resultados', emptyFor: 'Sin resultados para {q}', emptyHint: 'Prueba otras palabras o menos filtros.', showAll: 'Ver todos los resultados', filters: 'Filtros', clear: 'Borrar todo', clearFilters: 'Borrar filtros',
   results: '{n} resultados', result: '1 resultado', none: 'Nada coincide con estos filtros.', more: 'Ver más', fewer: 'Ver menos', loadMore: 'Ver más resultados', close: 'Cerrar', previous: 'Anterior', next: 'Siguiente',
   inStock: 'Solo en stock', askAi: 'Preguntar a la IA', products: 'Productos', pages: 'Páginas', suggestions: 'Sugerencias', thinking: 'Pensando', continuing: 'Continuando desde', startOver: 'Empezar de nuevo',
-  findValue: 'Buscar', apply: 'Aplicar', sortBy: 'Ordenar',
+  findValue: 'Buscar', apply: 'Aplicar', sortBy: 'Ordenar', chat: 'Habla con nosotros',
   sort: { relevance: 'Más relevante', price_asc: 'Más barato primero', price_desc: 'Más caro primero', year_desc: 'Más nuevo primero', year_asc: 'Más antiguo primero', mileage_asc: 'Menos kilómetros primero', newest: 'Últimos añadidos', name_asc: 'Nombre A-Z' },
   fields: { ...EN.fields, car_type: 'Tipo', listing_type: 'Anuncio', seats: 'Plazas', beds: 'Plazas para dormir', doors: 'Puertas', accessories: 'Equipamiento', rooms: 'Habitaciones', area: 'Superficie', brand: 'Marca', make: 'Marca', vendor: 'Marca', model: 'Modelo', body_style: 'Carrocería', fuel: 'Combustible', transmission: 'Cambio', drive: 'Tracción', condition: 'Estado', colour: 'Color', color: 'Color', price: 'Precio', year: 'Año', mileage: 'Kilometraje', category: 'Categoría', main_category: 'Categoría', sub_category: 'Subcategoría', leaf_category: 'Categoría', size: 'Talla', material: 'Material', availability: 'Disponibilidad', city: 'Ciudad', type: 'Tipo', gender: 'Género', rent: 'Alquiler' },
 };

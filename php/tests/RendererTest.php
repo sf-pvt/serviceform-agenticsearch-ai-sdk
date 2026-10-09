@@ -47,7 +47,11 @@ final class RendererTest extends TestCase
         }
         $this->assertStringContainsString('<span class="sfas-shell-text">Search</span>', $html);
         $this->assertStringContainsString(
-            '<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>',
+            '<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main"><div class="sfas-shell-field">',
+            $html
+        );
+        $this->assertStringContainsString(
+            '<div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>',
             $html
         );
         $this->assertStringNotContainsString('<script', $html);

@@ -243,14 +243,15 @@ final class Renderer
      */
     private static function shell(string $layout, string $placeholder): string
     {
-        $html = '<div class="sfas-shell-field"><span class="sfas-shell-icon"></span>'
+        $field = '<div class="sfas-shell-field"><span class="sfas-shell-icon"></span>'
             . '<span class="sfas-shell-text">' . self::esc($placeholder) . '</span></div>';
         if ($layout === 'page') {
-            $html .= '<div class="sfas-shell-body"><div class="sfas-shell-side"></div>'
-                . '<div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>';
+            // The filters' card down the left, the field over the results.
+            return '<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main">' . $field
+                . '<div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>';
         }
 
-        return $html;
+        return $field;
     }
 
     /**

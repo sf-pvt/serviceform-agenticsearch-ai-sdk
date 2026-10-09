@@ -37,6 +37,8 @@ export interface MountOptions {
    * the page's own address still wins over it.
    */
   initialState?: Partial<SearchState> | string;
+  /** Open results in a new tab. The tool's own setting (on) by default. */
+  openInNewTab?: boolean;
   testMode?: boolean;
 }
 
@@ -102,6 +104,7 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     facets: options.facets,
     language: options.language,
     ai: options.ai,
+    openInNewTab: options.openInNewTab,
   });
 }
 
@@ -265,6 +268,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.placeholder) options.placeholder = d.placeholder;
   if (d.routing) options.routing = d.routing !== 'false';
   if (d.state) options.initialState = d.state;
+  if (d.newTab) options.openInNewTab = d.newTab !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;
 }

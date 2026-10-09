@@ -51,9 +51,13 @@ const shellText = placeholder || settings?.placeholders?.[0] || '';
   data-api-base={apiBase}
   style={settings ? `--sfas-accent:${accent || settings.accent};--sfas-radius:${settings.radius}px` : undefined}
 >
-  <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">{shellText}</span></div>
-  {layout === 'page' && (
-    <div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  {layout === 'page' ? (
+    <div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main">
+      <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">{shellText}</span></div>
+      <div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div></div>
+  ) : (
+    <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">{shellText}</span></div>
   )}
 </div>
 {settingsJson && <script type="application/json" data-sf-agenticsearch-config={toolId} set:html={settingsJson} />}

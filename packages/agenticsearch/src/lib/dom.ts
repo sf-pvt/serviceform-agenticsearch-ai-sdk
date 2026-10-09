@@ -23,6 +23,32 @@ export function button(className: string, text?: string, label?: string): HTMLBu
   return b;
 }
 
+/** A link that opens where the tool is set to: a new tab, or this one. */
+export function openWhere<T extends HTMLAnchorElement>(a: T, newTab: boolean): T {
+  if (newTab) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+  else { a.removeAttribute('target'); a.removeAttribute('rel'); }
+  return a;
+}
+
+/** The element on the page the "nothing found" button stands for, while it is there. */
+export function emptyTarget(selector: string): Element | null {
+  if (!selector) return null;
+  try { return document.querySelector(selector); } catch { return null; }
+}
+
+/**
+ * Clicks it as a visitor would: on its innermost element, so the click rises
+ * through every element a widget may listen on (a chat bubble is drawn by one
+ * script and listened to by another).
+ */
+export function clickEmptyTarget(selector: string): boolean {
+  let at = emptyTarget(selector);
+  if (!at) return false;
+  while (at.firstElementChild) at = at.firstElementChild;
+  try { at.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })); } catch { return false; }
+  return true;
+}
+
 export function clear(node: Element): void {
   while (node.firstChild) node.removeChild(node.firstChild);
 }

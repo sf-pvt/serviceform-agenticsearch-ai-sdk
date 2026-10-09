@@ -1,6 +1,7 @@
 import { connectAutocomplete, connectSearchBox } from '../connectors';
 import type { Widget } from '../core/types';
-import { button, clear, debounce, el, icon, resolveContainer, type Container } from '../lib/dom';
+import { button, clear, debounce, el, icon, openWhere, resolveContainer, type Container } from '../lib/dom';
+import { keepForReturn, takeReturn } from '../lib/return';
 import { aiAnswer } from './ai';
 import { renderCard } from './card';
 
@@ -14,7 +15,7 @@ export interface SearchBoxParams {
   debounce?: number;
 }
 
-function field(placeholder: string) {
+function field(placeholder: string, opts: { go?: boolean } = {}) {
   // No role="search" on the form itself: themes and plugins target
   // form[role="search"] to restyle or replace "the site's search form", and
   // this one must not be caught by that. The role goes on the wrapper.
@@ -30,16 +31,36 @@ function field(placeholder: string) {
   const reset = button('sfas-input-clear');
   reset.innerHTML = icon('close').innerHTML;
   reset.hidden = true;
-  form.appendChild(icon('search', 'sfas-input-icon'));
+  // The face of the tool's assistant where the magnifying glass would be,
+  // once the settings say there is one; and on a results page a button to
+  // send what was typed, in the tool's colour.
+  const face = el('img', 'sfas-input-face');
+  face.alt = '';
+  face.hidden = true;
+  const lens = icon('search', 'sfas-input-icon');
+  form.appendChild(face);
+  form.appendChild(lens);
   form.appendChild(input);
   form.appendChild(reset);
-  return { form, input, reset };
+  let go: HTMLButtonElement | null = null;
+  if (opts.go) {
+    go = el('button', 'sfas-input-go');
+    go.type = 'submit';
+    go.appendChild(icon('arrow'));
+    form.appendChild(go);
+  }
+  const showFace = (src: string) => {
+    if (src && face.getAttribute('src') !== src) face.src = src;
+    face.hidden = !src;
+    lens.hidden = !!src;
+  };
+  return { form, input, reset, go, showFace };
 }
 
 /** The search field of a results page: searches as it is typed in, and Enter starts a new search (and asks the AI). */
 export function searchBox(params: SearchBoxParams): Widget {
   const root = resolveContainer(params.container, 'searchBox');
-  const { form, input, reset } = field(params.placeholder || '');
+  const { form, input, reset, go, showFace } = field(params.placeholder || '', { go: true });
   let refineNow: (q: string) => void = () => {};
   const later = debounce((q: string) => refineNow(q), params.debounce ?? 220);
   return connectSearchBox<SearchBoxParams>(({ query, refine, submit, clear: clearAll, isLoading, instance }, first) => {
@@ -61,6 +82,8 @@ export function searchBox(params: SearchBoxParams): Widget {
     input.placeholder = params.placeholder || instance.config.placeholders[0] || s.placeholder;
     input.setAttribute('aria-label', s.search);
     reset.setAttribute('aria-label', s.clearQuery);
+    go?.setAttribute('aria-label', s.search);
+    showFace(instance.config.assistantAvatar);
     form.classList.toggle('is-loading', isLoading);
     // The field follows the search (the address, a cleared chip) but never over what is being typed.
     if (document.activeElement !== input && input.value !== query) input.value = query;
@@ -92,7 +115,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
   const root = resolveContainer(params.container, 'autocomplete');
   const wrap = el('div', 'sfas-autocomplete');
   wrap.setAttribute('role', 'search');
-  const { form, input, reset } = field(params.placeholder || '');
+  const { form, input, reset, showFace } = field(params.placeholder || '');
   const panel = el('div', 'sfas-panel');
   panel.hidden = true;
   const answerHost = el('div');
@@ -122,11 +145,12 @@ export function autocomplete(params: AutocompleteParams): Widget {
     const pageHref = params.searchPageHref ?? config.searchPageHref;
     const pageParam = params.searchPageParam || config.searchPageParam || 'q';
     const resultsUrl = (q: string) => `${pageHref}${pageHref.includes('?') ? '&' : '?'}${encodeURIComponent(pageParam)}=${encodeURIComponent(q)}`;
+    const newTab = instance.opensInNewTab();
     go = (q: string) => {
       const words = q.trim();
       if (!words) return;
       if (params.onSubmit) { close(); params.onSubmit(words); return; }
-      if (pageHref) { window.location.assign(resultsUrl(words)); return; }
+      if (pageHref) { keepForReturn(config.toolId, words); window.location.assign(resultsUrl(words)); return; }
       if (aiOn) { open = true; void instance.ask(words); }
     };
     redraw = () => instance.render();
@@ -157,13 +181,22 @@ export function autocomplete(params: AutocompleteParams): Widget {
         else go(input.value);
       });
       reset.addEventListener('click', () => { input.value = ''; reset.hidden = true; instance.resetConversation(); refine(''); input.focus(); });
+      // A result opened in this tab: the words are kept for the way back.
+      panel.addEventListener('click', (event) => {
+        const a = (event.target as Element).closest('a');
+        if (a && a.href && a.target !== '_blank') keepForReturn(config.toolId, input.value);
+      });
       document.addEventListener('pointerdown', onDocument);
+      // Back from a result: the words go back in the field, and the results with them when it is next focused.
+      const back = takeReturn(config.toolId);
+      if (back && !input.value) { input.value = back; reset.hidden = false; }
       if (params.autofocus) input.focus();
     }
 
     input.placeholder = params.placeholder || config.placeholders[0] || s.placeholder;
     input.setAttribute('aria-label', s.search);
     reset.setAttribute('aria-label', s.clearQuery);
+    showFace(config.assistantAvatar);
     form.classList.toggle('is-loading', status === 'loading');
 
     // Two columns, as in the Serviceform search box: everything that is talk
@@ -199,7 +232,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
       if (pages.length) {
         const box = section(s.pages, left);
         for (const page of pages) {
-          const a = el('a', 'sfas-panel-row sfas-option');
+          const a = openWhere(el('a', 'sfas-panel-row sfas-option'), newTab);
           a.href = page.url;
           a.appendChild(icon('page'));
           a.appendChild(el('span', '', page.label));
@@ -232,7 +265,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
         const box = section(s.products, right);
         const list = el('ul', 'sfas-hits sfas-hits--rows');
         hits.forEach((hit, i) => {
-          const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, onClick: sendClick });
+          const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
           row.querySelector('a')?.classList.add('sfas-option');
           list.appendChild(row);
         });

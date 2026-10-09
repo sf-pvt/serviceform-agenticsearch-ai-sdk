@@ -7,8 +7,9 @@ import { escapeHtml } from './dom';
  */
 export function shellHtml(layout: string, placeholder = ''): string {
   const field = `<div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">${escapeHtml(placeholder)}</span></div>`;
-  const body = '<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>';
-  return layout === 'page' ? field + body : field;
+  // A page: the filters' card down the left, the field over the results.
+  const page = `<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main">${field}<div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>`;
+  return layout === 'page' ? page : field;
 }
 
 export const shellClass = (layout: string): string => `sfas sfas-shell sfas-shell--${layout}`;

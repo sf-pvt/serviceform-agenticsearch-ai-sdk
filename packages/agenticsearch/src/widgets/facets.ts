@@ -59,7 +59,8 @@ export function refinementList(params: RefinementListParams): Widget {
     }
     const searchable = params.searchable ?? (canToggleShowMore && style === 'list');
     find.hidden = !searchable && !find.value;
-    find.placeholder = s.findValue;
+    // "Search make": the filter's own name in the field that finds a value of it.
+    find.placeholder = `${s.findValue} ${label.toLocaleLowerCase()}`;
     find.setAttribute('aria-label', `${s.findValue}: ${label}`);
     clear(list);
     for (const item of items) {
@@ -87,22 +88,33 @@ export function refinementList(params: RefinementListParams): Widget {
   }, () => clear(root))(params);
 }
 
-export interface RangeParams { container: Container; attribute: string; title?: boolean; /** Leave the sliders out and keep the two fields. */ inputsOnly?: boolean }
+export interface RangeParams {
+  container: Container;
+  attribute: string;
+  title?: boolean;
+  /** Two fields to type the bounds into, over the slider. Off by default: the slider and what it reads are enough. */
+  fields?: boolean;
+  /** The two fields and no slider. */
+  inputsOnly?: boolean;
+}
 
-/** A numeric filter (price, year, mileage): two fields and a two-handled slider. */
+/** A numeric filter (price, year, mileage): its name with what it is set to beside it, and a two-handled slider. */
 export function range(params: RangeParams): Widget {
   const root = resolveContainer(params.container, 'range');
   const group = el('div', 'sfas-facet sfas-facet--range');
+  const head = el('div', 'sfas-range-head');
   const title = el('div', 'sfas-facet-title');
+  const said = el('div', 'sfas-range-said');
   const fields = el('div', 'sfas-range-fields');
   const lo = el('input', 'sfas-range-input');
   const hi = el('input', 'sfas-range-input');
   const slider = el('div', 'sfas-range-slider');
+  const filled = el('i', 'sfas-range-filled');
   const sLo = el('input');
   const sHi = el('input');
-  const said = el('div', 'sfas-range-said');
   for (const input of [lo, hi]) { input.type = 'number'; input.inputMode = 'numeric'; }
   for (const input of [sLo, sHi]) { input.type = 'range'; }
+  const withFields = !!(params.fields || params.inputsOnly);
   let apply: (bounds: [number | null, number | null]) => void = () => {};
   let bounds = { min: 0, max: 0 };
   const read = (input: HTMLInputElement): number | null => (input.value.trim() === '' || !Number.isFinite(Number(input.value)) ? null : Number(input.value));
@@ -114,21 +126,31 @@ export function range(params: RangeParams): Widget {
     apply([a !== null && a <= bounds.min ? null : a, b !== null && b >= bounds.max ? null : b]);
   };
   const later = debounce(commit, 350);
+  // The track between the two handles, in the tool's colour.
+  const paint = () => {
+    const min = Number(sLo.min);
+    const span = Number(sLo.max) - min || 1;
+    filled.style.left = `${((Number(sLo.value) - min) / span) * 100}%`;
+    filled.style.right = `${100 - ((Number(sHi.value) - min) / span) * 100}%`;
+  };
   return connectRange<RangeParams>(({ label, range: r, start, refine, canRefine, format, instance }, first) => {
     const s = instance.strings;
     apply = refine;
     bounds = r;
     if (first) {
       clear(root);
-      if (params.title !== false) group.appendChild(title);
-      fields.appendChild(lo); fields.appendChild(el('span', 'sfas-range-dash', '–')); fields.appendChild(hi);
-      group.appendChild(fields);
-      if (!params.inputsOnly) { slider.appendChild(sLo); slider.appendChild(sHi); group.appendChild(slider); }
-      group.appendChild(said);
+      if (params.title !== false) head.appendChild(title);
+      head.appendChild(said);
+      group.appendChild(head);
+      if (withFields) {
+        fields.appendChild(lo); fields.appendChild(el('span', 'sfas-range-dash', '–')); fields.appendChild(hi);
+        group.appendChild(fields);
+      }
+      if (!params.inputsOnly) { slider.appendChild(filled); slider.appendChild(sLo); slider.appendChild(sHi); group.appendChild(slider); }
       lo.addEventListener('change', commit);
       hi.addEventListener('change', commit);
-      sLo.addEventListener('input', () => { if (Number(sLo.value) > Number(sHi.value)) sLo.value = sHi.value; lo.value = sLo.value; later(); });
-      sHi.addEventListener('input', () => { if (Number(sHi.value) < Number(sLo.value)) sHi.value = sLo.value; hi.value = sHi.value; later(); });
+      sLo.addEventListener('input', () => { if (Number(sLo.value) > Number(sHi.value)) sLo.value = sHi.value; lo.value = sLo.value; paint(); later(); });
+      sHi.addEventListener('input', () => { if (Number(sHi.value) < Number(sLo.value)) sHi.value = sLo.value; hi.value = sHi.value; paint(); later(); });
       root.appendChild(group);
     }
     const active = start[0] !== null || start[1] !== null;
@@ -148,6 +170,7 @@ export function range(params: RangeParams): Widget {
       sLo.value = String(start[0] ?? min);
       sHi.value = String(start[1] ?? max);
       sLo.setAttribute('aria-label', `${label}: ${s.min}`); sHi.setAttribute('aria-label', `${label}: ${s.max}`);
+      paint();
     }
     said.textContent = `${format(start[0] ?? r.min)} \u2013 ${format(start[1] ?? r.max)}`;
   }, () => { later.cancel(); clear(root); })(params);

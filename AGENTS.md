@@ -62,6 +62,7 @@ Attributes on the mount element (or keys of `ServiceformAgenticSearch.mount({...
 | `data-facets` | `facets` | comma-separated filter ids, in order | the tool's setting |
 | `data-placeholder` | `placeholder` | text | the tool's placeholder |
 | `data-routing` | `routing` | `false` stops the page layout writing to the URL | `true` |
+| `data-new-tab` | `openInNewTab` | `false` opens results in the same tab (Back then puts the words back in the field) | the tool's setting, `true` |
 | `data-state` | `initialState` | The search a page opens with, in address format: `f.brand=Volvo&price_max=30000&sort=price_asc`. For landing pages | none |
 | `data-api-base` | `apiBase` | API origin | `https://dash.serviceform.com` |
 

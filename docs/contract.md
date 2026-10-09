@@ -52,8 +52,11 @@ Server renderers output this inside the mount element so the space is taken befo
 ```html
 <!-- box, modal, section -->
 <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">PLACEHOLDER</span></div>
-<!-- page: the field above, then -->
-<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+<!-- page: the filters' card down the left, the field over the results -->
+<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main">
+  <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">PLACEHOLDER</span></div>
+  <div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+</div></div>
 ```
 
 ## 4. Settings
@@ -89,9 +92,13 @@ Server renderers output this inside the mount element so the space is taken befo
   "productSearch": true,
   "pageSearch": true,
   "popularSearches": false,
-  "pagesCount": 120
+  "pagesCount": 120,
+  "openInNewTab": true,
+  "emptyButton": null
 }
 ```
+
+`openInNewTab` (default `true`): a result opens in a new tab; `false` opens it in this one, and the SDK puts the words back in the field on the way back. `emptyButton` is `null`, or `{ "label": "Chat with us", "selector": ".sf-bubble-wrapper" }`: a button under "no results" that clicks that element of the site's own (the Mira chat bubble by default), shown only while the element is on the page. An empty `label` means the SDK's own words in the tool's language. A tool document read directly carries the same as `openInNewTab`, `emptyButton: true`, `emptyButtonLabel` and `emptyButtonSelector`.
 
 `GET .../config/{toolId}?part=pages` returns `{ "v": 1, "pages": [{ "l": "label", "h": "https://...", "k": "keywords" }] }`, fetched lazily on first focus.
 

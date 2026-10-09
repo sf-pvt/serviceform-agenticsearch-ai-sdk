@@ -161,6 +161,10 @@ export interface SearchConfig {
   pageSearch: boolean;
   popularSearches: boolean;
   pagesCount: number;
+  /** Where a result opens: a new tab (the default), or this one. */
+  openInNewTab: boolean;
+  /** An extra button when nothing is found, clicking an element of the site's own (its chat bubble). */
+  emptyButton: { label: string; selector: string } | null;
 }
 
 export type TrackType = 'search' | 'click' | 'filter_usage';

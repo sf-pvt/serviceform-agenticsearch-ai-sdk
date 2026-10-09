@@ -71,12 +71,14 @@ Render the placeholder shell inside the mount element. The stylesheet sizes it, 
 </div>
 ```
 
-For the page layout add the body shell after the field:
+For the page layout the field sits over the results, beside the filters' card:
 
 ```html
 <div class="sfas sfas-shell sfas-shell--page" data-sf-agenticsearch data-tool-id="TOOL_ID" data-layout="page">
-  <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">Search</span></div>
-  <div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+  <div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main">
+    <div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">Search</span></div>
+    <div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  </div></div>
 </div>
 ```
 

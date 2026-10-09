@@ -1,7 +1,8 @@
 import { connectClearRefinements, connectCurrentRefinements, connectHits, connectInStock, connectInfiniteHits, connectNote, connectPagination, connectSortBy, connectStats } from '../connectors';
 import type { Hit, SortId } from '../client/types';
 import type { Widget } from '../core/types';
-import { button, clear, el, fill, resolveContainer, type Container } from '../lib/dom';
+import { button, clear, clickEmptyTarget, el, emptyTarget, fill, resolveContainer, type Container } from '../lib/dom';
+import type { AgenticSearch } from '../core/agenticsearch';
 import { renderCard, renderSkeleton, type HitTemplate } from './card';
 
 export interface HitsParams {
@@ -11,16 +12,25 @@ export interface HitsParams {
   skeleton?: number;
 }
 
-function emptyBlock(strings: { emptyTitle: string; emptyFor: string; emptyHint: string }, query: string, template?: (query: string) => string | Node): HTMLElement {
+function emptyBlock(instance: AgenticSearch, query: string, template?: (query: string) => string | Node): HTMLElement {
+  const { strings, config } = instance.context();
   const empty = el('div', 'sfas-empty');
   if (template) { fill(empty, template(query)); return empty; }
   empty.appendChild(el('strong', 'sfas-empty-title', query ? strings.emptyFor.replace('{q}', `“${query}”`) : strings.emptyTitle));
   empty.appendChild(el('p', 'sfas-empty-hint', strings.emptyHint));
+  // The site's own way on (its chat) when the tool asks for it, while what
+  // the button clicks is on the page.
+  const extra = config.emptyButton;
+  if (extra && emptyTarget(extra.selector)) {
+    const b = button('sfas-empty-button', extra.label || strings.chat);
+    b.addEventListener('click', () => clickEmptyTarget(extra.selector));
+    empty.appendChild(b);
+  }
   return empty;
 }
 
-function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; onClick: (hit: Hit, position: number) => void }) {
-  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, onClick: opts.onClick })));
+function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; newTab: boolean; onClick: (hit: Hit, position: number) => void }) {
+  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, newTab: opts.newTab, onClick: opts.onClick })));
 }
 
 /** The results of the current page, as a grid of cards. */
@@ -39,8 +49,8 @@ export function hits(params: HitsParams): Widget {
     }
     if (status === 'loading') return;
     clear(list);
-    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, onClick: sendClick });
-    if (!rows.length) emptyHost.appendChild(emptyBlock(ctx.strings, ctx.state.q, params.templates?.empty));
+    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick });
+    if (!rows.length) emptyHost.appendChild(emptyBlock(instance, ctx.state.q, params.templates?.empty));
   }, () => clear(root))(params);
 }
 
@@ -72,12 +82,12 @@ export function infiniteHits(params: InfiniteHitsParams): Widget {
     // More of the same search is added under what is there; anything else starts the list again.
     const appending = drawn > 0 && rows.length > drawn && rows[0] === drawnFirst;
     if (!appending) { clear(list); drawn = 0; }
-    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, onClick: sendClick });
+    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick });
     drawn = rows.length;
     drawnFirst = rows[0];
     more.hidden = isLastPage || !rows.length;
     more.disabled = false;
-    if (!rows.length) emptyHost.appendChild(emptyBlock(ctx.strings, ctx.state.q, params.templates?.empty));
+    if (!rows.length) emptyHost.appendChild(emptyBlock(instance, ctx.state.q, params.templates?.empty));
   }, () => clear(root))(params);
 }
 

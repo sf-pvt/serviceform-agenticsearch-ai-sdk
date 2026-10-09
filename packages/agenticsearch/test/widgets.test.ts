@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { agenticsearch, aiAnswer, autocomplete, currentRefinements, dynamicFacets, hits, infiniteHits, mount, mountAll, searchBox, sortBy, stats } from '../src';
+import { agenticsearch, aiAnswer, autocomplete, currentRefinements, dynamicFacets, hits, infiniteHits, mount, mountAll, range, searchBox, sortBy, stats } from '../src';
+import { shellHtml } from '../src/lib/shell';
+import { keepForReturn } from '../src/lib/return';
 import { browseBody, clientWith, configBody, fakeFetch, product, tick, type Call } from './helpers';
 
 const host = () => { const node = document.createElement('div'); document.body.appendChild(node); return node; };
-afterEach(() => { document.body.innerHTML = ''; document.head.querySelectorAll('style[data-sfas]').forEach((n) => n.remove()); });
+afterEach(() => { document.body.innerHTML = ''; document.head.querySelectorAll('style[data-sfas]').forEach((n) => n.remove()); history.replaceState(null, '', window.location.pathname); });
 
 describe('DOM widgets', () => {
   it('draws hits as text, never as markup, and links only where it is safe', async () => {
@@ -121,7 +123,144 @@ describe('DOM widgets', () => {
   });
 });
 
+describe('the field and the filters, as on the search page', () => {
+  it('a results-page field has a send button, and the assistant\'s face once the settings say so', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody({ assistantAvatar: 'https://cdn.test/face.png' }) });
+    const node = host();
+    agenticsearch({ searchClient: client, insights: false, searchOnStart: false }).addWidgets([searchBox({ container: node })]).start();
+    const go = node.querySelector('.sfas-input-go') as HTMLButtonElement;
+    expect(go.type).toBe('submit');
+    const face = node.querySelector('.sfas-input-face') as HTMLImageElement;
+    expect(face.hidden).toBe(true);
+    expect((node.querySelector('.sfas-input-icon') as HTMLElement).hidden).toBe(false);
+    await tick(5);
+    expect(face.hidden).toBe(false);
+    expect(face.getAttribute('src')).toBe('https://cdn.test/face.png');
+    expect((node.querySelector('.sfas-input-icon') as HTMLElement).hidden).toBe(true);
+  });
+
+  it('a range is its name with the span beside it and a slider; the fields only when asked for', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
+    const [a, b] = [host(), host()];
+    agenticsearch({ searchClient: client, insights: false }).addWidgets([range({ container: a, attribute: 'year' }), range({ container: b, attribute: 'year', fields: true })]).start();
+    await tick(5);
+    const head = a.querySelector('.sfas-range-head')!;
+    expect(head.querySelector('.sfas-facet-title')!.textContent).toBe('Vuosimalli');
+    expect(head.querySelector('.sfas-range-said')!.textContent).toBe('2015 – 2024');
+    expect(a.querySelector('.sfas-range-input')).toBeNull();
+    expect(a.querySelectorAll('.sfas-range-slider input')).toHaveLength(2);
+    expect(a.querySelector('.sfas-range-filled')).not.toBeNull();
+    expect(b.querySelectorAll('.sfas-range-input')).toHaveLength(2);
+  });
+
+  it('the shell of a page puts the field over the results, beside the filters', () => {
+    expect(shellHtml('page', 'Hae')).toBe('<div class="sfas-shell-body"><div class="sfas-shell-side"></div><div class="sfas-shell-main"><div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">Hae</span></div><div class="sfas-shell-grid"><i></i><i></i><i></i><i></i><i></i><i></i></div></div></div>');
+    expect(shellHtml('box', 'Hae')).toBe('<div class="sfas-shell-field"><span class="sfas-shell-icon"></span><span class="sfas-shell-text">Hae</span></div>');
+  });
+});
+
+describe('what dev added: where a result opens, the way back, the extra button', () => {
+  it('results open in a new tab unless the tool or the mount says this one', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
+    const [a, b] = [host(), host()];
+    agenticsearch({ searchClient: client, insights: false }).addWidgets([hits({ container: a })]).start();
+    agenticsearch({ searchClient: client, insights: false, openInNewTab: false }).addWidgets([hits({ container: b })]).start();
+    await tick(10);
+    const first = a.querySelector('.sfas-hit-link') as HTMLAnchorElement;
+    expect(first.target).toBe('_blank');
+    expect(first.rel).toBe('noopener noreferrer');
+    expect((b.querySelector('.sfas-hit-link') as HTMLAnchorElement).hasAttribute('target')).toBe(false);
+    const { client: same } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody({ openInNewTab: false }) });
+    const c = host();
+    agenticsearch({ searchClient: same, insights: false }).addWidgets([hits({ container: c })]).start();
+    await tick(10);
+    expect((c.querySelector('.sfas-hit-link') as HTMLAnchorElement).hasAttribute('target')).toBe(false);
+  });
+
+  it('the extra button is there when nothing is found and its element is on the page, and clicks it', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined, products: [], found: 0 }), '/omnibox/config/': configBody({ emptyButton: { label: '', selector: '#bubble' } }) });
+    const node = host();
+    agenticsearch({ searchClient: client, insights: false, initialState: { q: 'zzz' } }).addWidgets([infiniteHits({ container: node })]).start();
+    await tick(10);
+    expect(node.querySelector('.sfas-empty-button')).toBeNull();
+    const bubble = document.createElement('div'); bubble.id = 'bubble';
+    const inner = document.createElement('span'); bubble.appendChild(inner); document.body.appendChild(bubble);
+    let clicked = 0;
+    bubble.addEventListener('click', () => { clicked += 1; });
+    const { client: again } = clientWith({ '/browse/': browseBody({ state: undefined, products: [], found: 0 }), '/omnibox/config/': configBody({ emptyButton: { label: '', selector: '#bubble' } }) });
+    const other = host();
+    agenticsearch({ searchClient: again, insights: false, initialState: { q: 'zzz' } }).addWidgets([infiniteHits({ container: other })]).start();
+    await tick(10);
+    const b = other.querySelector('.sfas-empty-button') as HTMLButtonElement;
+    expect(b.textContent).toBe('Kysy chatissa');
+    b.click();
+    expect(clicked).toBe(1);
+  });
+
+  it('on the way back from a result opened in this tab the words are in the field again', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody({ openInNewTab: false }) });
+    const tool = 'tool1';
+    keepForReturn(tool, 'punainen volvo');
+    const back = () => [{ type: 'back_forward' }];
+    const original = performance.getEntriesByType;
+    performance.getEntriesByType = back as unknown as typeof performance.getEntriesByType;
+    try {
+      const node = host();
+      agenticsearch({ searchClient: client, insights: false, searchOnStart: false }).addWidgets([autocomplete({ container: node })]).start();
+      expect((node.querySelector('.sfas-input') as HTMLInputElement).value).toBe('punainen volvo');
+      // Read once: the next box on this load starts empty.
+      const other = host();
+      agenticsearch({ searchClient: client, insights: false, searchOnStart: false }).addWidgets([autocomplete({ container: other })]).start();
+      expect((other.querySelector('.sfas-input') as HTMLInputElement).value).toBe('');
+    } finally { performance.getEntriesByType = original; }
+  });
+});
+
 describe('prebuilt mount', () => {
+  it('lays the page out with the filters as a card headed by the count and the order, the field over the results', async () => {
+    const { fetch } = fakeFetch({ '/browse/': (call: Call) => browseBody({ state: undefined, found: 1234, chips: call.url.includes('f.brand=Volvo') ? [{ k: 'brand', l: 'Volvo' }] : [] }), '/omnibox/config/': configBody() });
+    globalThis.fetch = fetch;
+    const node = host();
+    const mounted = mount({ toolId: 'toolL', target: node, layout: 'page', apiBase: 'https://api.test' });
+    await tick(10);
+    const side = node.querySelector('.sfas-page-side')!;
+    const main = node.querySelector('.sfas-page-main')!;
+    expect(main.querySelector('.sfas-page-top .sfas-searchbox')).not.toBeNull();
+    expect(side.querySelector('.sfas-searchbox')).toBeNull();
+    // The count heads the card, the order is its first group, the filters follow, "clear" closes it.
+    const parts = Array.from(side.children).map((c) => c.className);
+    expect(parts.indexOf('sfas-page-count')).toBeLessThan(parts.indexOf('sfas-page-sortgroup'));
+    expect(side.querySelector('.sfas-page-count')!.textContent).toMatch(/^1.234 tulosta$/);
+    expect(side.querySelector('.sfas-page-sortgroup .sfas-facet-title')!.textContent).toBe('Järjestys');
+    expect(side.querySelector('.sfas-page-sortgroup .sfas-sort')).not.toBeNull();
+    expect(side.querySelectorAll('.sfas-facet').length).toBeGreaterThan(0);
+    expect(side.querySelector('.sfas-side-clear .sfas-clear')).not.toBeNull();
+    // Nothing on the line over the results while no filter is on.
+    const tools = main.querySelector('.sfas-page-tools')!;
+    expect(tools.classList.contains('is-bare')).toBe(true);
+    expect(tools.querySelector('.sfas-page-count')).toBeNull();
+    mounted.instance.setRefinements('brand', ['Volvo']);
+    await tick(10);
+    expect(tools.classList.contains('is-bare')).toBe(false);
+    expect(tools.querySelector('.sfas-chip')).not.toBeNull();
+    mounted.destroy();
+  });
+
+  it('with the filters turned off on the tool the count and the order are on the line over the results', async () => {
+    const { fetch } = fakeFetch({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody({ showFilters: false }) });
+    globalThis.fetch = fetch;
+    const node = host();
+    const mounted = mount({ toolId: 'toolN', target: node, layout: 'page', apiBase: 'https://api.test' });
+    await tick(10);
+    expect(node.querySelector('.sfas-page')!.classList.contains('sfas-page--nofilters')).toBe(true);
+    const tools = node.querySelector('.sfas-page-tools')!;
+    expect(tools.querySelector('.sfas-page-count')).not.toBeNull();
+    expect(tools.querySelector('.sfas-page-sort .sfas-sort')).not.toBeNull();
+    expect(tools.classList.contains('is-bare')).toBe(false);
+    mounted.destroy();
+  });
+
+
   it('mounts declared elements from their data attributes, replacing the shell', async () => {
     const { fetch, calls } = fakeFetch({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
     globalThis.fetch = fetch;
@@ -137,7 +276,7 @@ describe('prebuilt mount', () => {
     expect(page.classList.contains('sfas-shell')).toBe(false);
     expect(page.querySelector('.sfas-page .sfas-searchbox input')).not.toBeNull();
     // The inline settings draw the first frame: Finnish words, the element's own accent over the tool's.
-    expect(page.querySelector('input')!.placeholder).toBe('Hae');
+    expect((page.querySelector('.sfas-input') as HTMLInputElement).placeholder).toBe('Hae');
     expect(page.lang).toBe('fi');
     expect(page.style.getPropertyValue('--sfas-accent')).toBe('#00ff00');
     expect(document.head.querySelector('style[data-sfas]')).not.toBeNull();

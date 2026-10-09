@@ -17,7 +17,19 @@ export function defaultConfig(toolId: string): SearchConfig {
     ai: true, aiDisclaimer: '', placeholders: [], questions: [], labels: {}, showFilters: true, facets: [], facetStyles: {}, facetLabels: {},
     card: null, searchPageHref: '', searchPageParam: 'q', contactHref: '', assistantAvatar: '', fallbackImage: '',
     productSearch: true, pageSearch: true, popularSearches: false, pagesCount: 0,
+    openInNewTab: true, emptyButton: null,
   };
+}
+
+/** The site's own element the "nothing found" button clicks unless the tool names another: the Mira chat bubble. */
+export const DEFAULT_EMPTY_TARGET = '.sf-bubble-wrapper';
+
+/** The extra button, from the settings' object or from the flat keys of a tool document. */
+function emptyButton(c: Record<string, any>): SearchConfig['emptyButton'] {
+  const v = c.emptyButton;
+  if (v && typeof v === 'object') return { label: str(v.label), selector: str(v.selector, DEFAULT_EMPTY_TARGET) };
+  if (v === true) return { label: str(c.emptyButtonLabel), selector: str(c.emptyButtonSelector, DEFAULT_EMPTY_TARGET) };
+  return null;
 }
 
 /** Settings from wherever they came (the API, a plugin's inline JSON, code), made whole and typed. */
@@ -53,6 +65,8 @@ export function normalizeConfig(toolId: string, input: unknown): SearchConfig {
     pageSearch: c.pageSearch !== false,
     popularSearches: c.popularSearches === true,
     pagesCount: Math.max(0, Number(c.pagesCount) || 0),
+    openInNewTab: c.openInNewTab !== false,
+    emptyButton: emptyButton(c),
   };
 }
 

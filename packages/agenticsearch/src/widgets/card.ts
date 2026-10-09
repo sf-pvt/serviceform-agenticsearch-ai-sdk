@@ -1,14 +1,14 @@
 import type { Hit } from '../client/types';
-import { el, escapeHtml, fill } from '../lib/dom';
+import { el, escapeHtml, fill, openWhere } from '../lib/dom';
 
 export type HitTemplate = (hit: Hit, helpers: { escape: typeof escapeHtml; position: number }) => string | Node;
 
-export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean }
+export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean }
 
 /** One result as a card (or a row in a dropdown): picture, title, details, price, the whole of it a link. */
 export function renderCard(hit: Hit, position: number, options: CardOptions = {}): HTMLElement {
   const item = el('li', `sfas-hit${hit.outOfStock ? ' sfas-hit--out' : ''}${options.compact ? ' sfas-hit--row' : ''}`);
-  const link = el('a', 'sfas-hit-link');
+  const link = openWhere(el('a', 'sfas-hit-link'), !!options.newTab);
   if (hit.url) link.href = hit.url;
   if (options.onClick) link.addEventListener('click', () => options.onClick!(hit, position));
   if (options.template) {
