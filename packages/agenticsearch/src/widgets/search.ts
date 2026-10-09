@@ -13,6 +13,8 @@ export interface SearchBoxParams {
   searchAsYouType?: boolean;
   /** Milliseconds to wait after a keystroke. */
   debounce?: number;
+  /** Under the field while something is typed: "Ask AI “…” ↵", which asks it. On by default when the tool has AI. */
+  askHint?: boolean;
 }
 
 function field(placeholder: string, opts: { go?: boolean } = {}) {
@@ -63,19 +65,42 @@ export function searchBox(params: SearchBoxParams): Widget {
   const { form, input, reset, go, showFace } = field(params.placeholder || '', { go: true });
   let refineNow: (q: string) => void = () => {};
   const later = debounce((q: string) => refineNow(q), params.debounce ?? 220);
+  // The way to the AI while something is typed: the words, and that Enter asks.
+  const hint = button('sfas-ask-hint');
+  hint.hidden = true;
+  const hintWords = el('span', 'sfas-ask-hint-words');
+  const hintLabel = el('b');
+  hintWords.appendChild(hintLabel);
+  const hintText = document.createTextNode('');
+  hintWords.appendChild(hintText);
+  hint.appendChild(icon('spark'));
+  hint.appendChild(hintWords);
+  hint.appendChild(el('kbd', '', '↵', { 'aria-hidden': 'true' }));
+  let showHint: () => void = () => {};
   return connectSearchBox<SearchBoxParams>(({ query, refine, submit, clear: clearAll, isLoading, instance }, first) => {
     const s = instance.strings;
     refineNow = refine;
+    showHint = () => {
+      const words = input.value.trim();
+      const on = params.askHint !== false && !!words && instance.aiEnabled() && words !== instance.ai.question;
+      hint.hidden = !on;
+      if (!on) return;
+      hintLabel.textContent = s.askAi;
+      hintText.textContent = ` “${words}”`;
+    };
     if (first) {
       clear(root);
       if (!root.hasAttribute('role')) root.setAttribute('role', 'search');
       root.appendChild(form);
+      root.appendChild(hint);
       input.value = query;
       input.addEventListener('input', () => {
         reset.hidden = !input.value;
+        showHint();
         if (params.searchAsYouType !== false) later(input.value);
       });
       form.addEventListener('submit', (event) => { event.preventDefault(); later.cancel(); submit(input.value); });
+      hint.addEventListener('click', () => { later.cancel(); submit(input.value); });
       reset.addEventListener('click', () => { later.cancel(); input.value = ''; reset.hidden = true; clearAll(); input.focus(); });
       if (params.autofocus) input.focus();
     }
@@ -88,6 +113,7 @@ export function searchBox(params: SearchBoxParams): Widget {
     // The field follows the search (the address, a cleared chip) but never over what is being typed.
     if (document.activeElement !== input && input.value !== query) input.value = query;
     reset.hidden = !input.value;
+    showHint();
   }, () => { later.cancel(); clear(root); })(params);
 }
 

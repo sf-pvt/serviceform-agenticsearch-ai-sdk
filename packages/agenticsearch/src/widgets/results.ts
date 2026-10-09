@@ -18,14 +18,25 @@ function emptyBlock(instance: AgenticSearch, query: string, template?: (query: s
   if (template) { fill(empty, template(query)); return empty; }
   empty.appendChild(el('strong', 'sfas-empty-title', query ? strings.emptyFor.replace('{q}', `“${query}”`) : strings.emptyTitle));
   empty.appendChild(el('p', 'sfas-empty-hint', strings.emptyHint));
-  // The site's own way on (its chat) when the tool asks for it, while what
-  // the button clicks is on the page.
+  // Ways on: the AI, for words the catalogue did not match; everything,
+  // again; and the site's own way (its chat) when the tool asks for it,
+  // while what that button clicks is on the page.
+  const actions = el('div', 'sfas-empty-actions');
+  if (query && instance.aiEnabled() && query !== instance.ai.question) {
+    const ask = button('sfas-empty-ask is-main', strings.askAi);
+    ask.addEventListener('click', () => instance.submit(query, { ask: true }));
+    actions.appendChild(ask);
+  }
+  const all = button('sfas-empty-all', strings.showAll);
+  all.addEventListener('click', () => { instance.resetConversation(); instance.clearRefinements({ query: true }); });
+  actions.appendChild(all);
   const extra = config.emptyButton;
   if (extra && emptyTarget(extra.selector)) {
     const b = button('sfas-empty-button', extra.label || strings.chat);
     b.addEventListener('click', () => clickEmptyTarget(extra.selector));
-    empty.appendChild(b);
+    actions.appendChild(b);
   }
+  empty.appendChild(actions);
   return empty;
 }
 

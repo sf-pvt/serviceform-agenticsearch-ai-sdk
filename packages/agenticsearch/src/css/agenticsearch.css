@@ -71,6 +71,15 @@ html.sfas-lock { overflow: hidden; }
 .sfas .sfas-input-go { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--sfas-accent); color: #fff; }
 .sfas .sfas-input-go svg { width: 14px; height: 14px; stroke-width: 2.5; }
 .sfas .sfas-input-go:hover { filter: brightness(0.94); }
+/* Under the field while something is typed: the way to the AI, and that Enter takes it. */
+.sfas .sfas-ask-hint { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; margin: 8px 0 0; padding: 6px 10px; border: 0; border-radius: var(--sfas-r-s); background: color-mix(in srgb, var(--sfas-accent) 8%, var(--sfas-surface)); color: var(--sfas-text); font-size: 13px; line-height: 1.4; text-align: left; }
+.sfas .sfas-ask-hint:hover { background: color-mix(in srgb, var(--sfas-accent) 14%, var(--sfas-surface)); }
+.sfas .sfas-ask-hint .sfas-icon { color: var(--sfas-accent); }
+.sfas .sfas-ask-hint .sfas-icon svg { width: 16px; height: 16px; }
+.sfas-ask-hint-words { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sfas .sfas-ask-hint b { font-weight: 600; color: var(--sfas-accent); }
+.sfas .sfas-ask-hint kbd { flex: none; min-width: 20px; padding: 1px 5px; border: 1px solid var(--sfas-border); border-radius: 5px; background: var(--sfas-surface); color: var(--sfas-muted); font: inherit; font-size: 11px; line-height: 1.5; text-align: center; }
+@media (hover: none) { .sfas .sfas-ask-hint kbd { display: none; } }
 .sfas .sfas-input::-webkit-search-cancel-button { display: none; }
 .sfas .sfas-input::placeholder { color: var(--sfas-muted); opacity: 1; }
 .sfas .sfas-input-clear { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: var(--sfas-soft); color: var(--sfas-muted); }
@@ -153,7 +162,10 @@ html.sfas-lock { overflow: hidden; }
 .sfas-empty { padding: 48px 16px; text-align: center; }
 .sfas-empty-title { display: block; font-size: 17px; }
 .sfas .sfas-empty-hint { margin: 6px 0 0; color: var(--sfas-muted); }
-.sfas .sfas-empty-button { display: inline-block; margin-top: 18px; padding: 8px 14px; border: 1px solid var(--sfas-accent); border-radius: var(--sfas-r-s); background: var(--sfas-accent); color: #fff; font-size: 13.5px; font-weight: 600; }
+.sfas-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
+.sfas .sfas-empty-actions button { padding: 8px 14px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background: var(--sfas-surface); color: var(--sfas-text); font-size: 13.5px; font-weight: 600; }
+.sfas .sfas-empty-actions button:hover { border-color: var(--sfas-accent); }
+.sfas .sfas-empty-actions button.is-main { background: var(--sfas-accent); border-color: var(--sfas-accent); color: #fff; }
 .sfas-note { margin: 0 0 12px; padding: 10px 12px; border-radius: var(--sfas-r-s); background: var(--sfas-soft); font-size: 13px; }
 
 /* ------------------------------------------------- chips, order, counts */

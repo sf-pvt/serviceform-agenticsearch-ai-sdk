@@ -159,6 +159,41 @@ describe('the field and the filters, as on the search page', () => {
   });
 });
 
+describe('the search page\'s other parts', () => {
+  it('under the field, while something is typed, the way to the AI; gone once that was asked', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
+    const node = host();
+    const search = agenticsearch({ searchClient: client, insights: false, searchOnStart: false });
+    search.addWidgets([searchBox({ container: node, debounce: 0 })]).start();
+    await tick(5);
+    const hint = node.querySelector('.sfas-ask-hint') as HTMLButtonElement;
+    expect(hint.hidden).toBe(true);
+    const input = node.querySelector('.sfas-input') as HTMLInputElement;
+    input.value = 'perheauto';
+    input.dispatchEvent(new Event('input'));
+    expect(hint.hidden).toBe(false);
+    expect(hint.textContent).toContain('Kysy tekoälyltä');
+    expect(hint.textContent).toContain('“perheauto”');
+    hint.click();
+    expect(search.state.q).toBe('perheauto');
+    expect(search.ai.question).toBe('perheauto');
+    await tick(5);
+    expect(hint.hidden).toBe(true);
+  });
+
+  it('when nothing is found: ask the AI, or show everything again', async () => {
+    const { client } = clientWith({ '/browse/': browseBody({ state: undefined, products: [], found: 0 }), '/omnibox/config/': configBody() });
+    const node = host();
+    const search = agenticsearch({ searchClient: client, insights: false, initialState: { q: 'zzz' } });
+    search.addWidgets([infiniteHits({ container: node })]).start();
+    await tick(10);
+    const actions = node.querySelector('.sfas-empty-actions')!;
+    expect((actions.querySelector('.sfas-empty-ask') as HTMLButtonElement).classList.contains('is-main')).toBe(true);
+    (actions.querySelector('.sfas-empty-all') as HTMLButtonElement).click();
+    expect(search.state.q).toBe('');
+  });
+});
+
 describe('what dev added: where a result opens, the way back, the extra button', () => {
   it('results open in a new tab unless the tool or the mount says this one', async () => {
     const { client } = clientWith({ '/browse/': browseBody({ state: undefined }), '/omnibox/config/': configBody() });
