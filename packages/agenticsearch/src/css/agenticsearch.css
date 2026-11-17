@@ -68,6 +68,10 @@ html.sfas-lock { overflow: hidden; }
 .sfas-input-icon { color: var(--sfas-muted); }
 .sfas .sfas-input-face { display: block; flex: none; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .sfas .sfas-input, .sfas .sfas-input:focus { flex: 1; min-width: 0; width: auto; max-width: none; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; outline: none; font-size: 15px; line-height: normal; box-shadow: none; -webkit-appearance: none; appearance: none; }
+/* A theme's own focus ring on fields (often a heavy outline on :focus-visible) does not belong inside
+   the search field: the field's frame shows the focus instead. */
+.sfas .sfas-searchbox input.sfas-input:focus, .sfas .sfas-searchbox input.sfas-input:focus-visible { outline: 0 !important; outline-offset: 0 !important; box-shadow: none !important; border: 0 !important; }
+.sfas .sfas-searchbox:focus-within { border-color: color-mix(in srgb, var(--sfas-text) 45%, transparent); }
 .sfas .sfas-input-go { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--sfas-accent); color: #fff; }
 .sfas .sfas-input-go svg { width: 14px; height: 14px; stroke-width: 2.5; }
 .sfas .sfas-input-go:hover { filter: brightness(0.94); }
