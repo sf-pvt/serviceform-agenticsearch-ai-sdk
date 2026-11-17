@@ -1,3 +1,4 @@
+import { BADGE_FIELD, parseBadges, type BadgeRule } from '../lib/badges';
 import { defaultConfig, normalizeConfig } from '../client/config';
 import { emptyState, isFiltered, normalizeState, sameSearch, stateToWire } from '../client/query';
 import type { BrowseOptions, BrowseResults, Hit, SearchClient, SearchConfig, SearchState, SortId } from '../client/types';
@@ -22,6 +23,8 @@ export interface AgenticSearchOptions {
   facets?: string[];
   /** Feed fields to return on every hit under `fields`. */
   fields?: string[];
+  /** Badges on cards from the product's tags: rules as text ("Tag = Label", one per line) or a list. */
+  badges?: string | BadgeRule[];
   /** Overrides the tool's language for labels and formatting. */
   language?: string;
   /** Ask the AI when a search is submitted (Enter). Follows the tool's setting by default. */
@@ -259,6 +262,20 @@ export class AgenticSearch {
 
   /* ------------------------------------------------- favourites and cart -- */
 
+  /** Which tag gives which badge on a card. None unless the page said. */
+  badgeRules(): BadgeRule[] {
+    if (!this.badgeList) this.badgeList = parseBadges(this.options.badges);
+    return this.badgeList;
+  }
+  private badgeList: BadgeRule[] | null = null;
+
+  /** The feed fields asked for with every result: the page's own, and the tags when badges are drawn from them. */
+  private fieldsToAsk(): string[] {
+    const fields = (this.options.fields || []).slice();
+    if (this.badgeRules().length && !fields.includes(BADGE_FIELD)) fields.push(BADGE_FIELD);
+    return fields;
+  }
+
   /** Whether cards carry a heart: the option on this instance, else the tool's setting. */
   favouritesEnabled(): boolean {
     return this.options.favourites !== undefined ? this.options.favourites : this.config.favourites;
@@ -320,7 +337,7 @@ export class AgenticSearch {
     return {
       perPage: Math.max(1, Math.min(48, o.perPage || 24)),
       ...(o.facets?.length ? { facets: o.facets } : {}),
-      ...(o.fields?.length ? { fields: o.fields } : {}),
+      ...(this.fieldsToAsk().length ? { fields: this.fieldsToAsk() } : {}),
       ...(o.language ? { language: o.language } : {}),
     };
   }

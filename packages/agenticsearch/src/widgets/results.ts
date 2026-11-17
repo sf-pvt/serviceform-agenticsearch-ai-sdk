@@ -5,12 +5,13 @@ import { button, clear, clickEmptyTarget, el, emptyTarget, fill, icon, resolveCo
 import type { AgenticSearch } from '../core/agenticsearch';
 import { renderCard, renderSkeleton, type CardActions, type HitTemplate } from './card';
 
-/** What this search's cards can do, from its settings: nothing, unless favourites or a cart are on. */
+/** What this search's cards can do and show, from its settings: nothing, unless favourites, a cart or badges are on. */
 export function cardActions(instance: AgenticSearch): CardActions | undefined {
   const favourites = instance.favouritesEnabled() ? instance.favourites : null;
   const cart = instance.cart();
-  if (!favourites && !cart) return undefined;
-  return { strings: instance.strings, favourites, cart };
+  const badges = instance.badgeRules();
+  if (!favourites && !cart && !badges.length) return undefined;
+  return { strings: instance.strings, favourites, cart, badges };
 }
 
 export interface HitsParams {

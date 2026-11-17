@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { agenticsearch, autocomplete, favourites, favouritesFor, infiniteHits, mount, setCart, type CartAdapter } from '../src';
 import { browseBody, clientWith, configBody, fakeFetch, product, tick } from './helpers';
+import { badgesFor, parseBadges } from '../src/lib/badges';
 
 // A storage of the test's own: what the runtime offers as localStorage differs between Node versions.
 const kept = new Map<string, string>();
@@ -146,6 +147,25 @@ describe('favourites in a header box', () => {
     expect(panel.querySelector('.sfas-hit-title')!.textContent).toBe('Trail Runner');
     expect(favouritesFor('tool1').has(other)).toBe(false);
     expect(node.querySelector('.sfas-input-fav')!.textContent).toBe('1');
+  });
+
+  it('reads badge rules from text: a label, a flag, or the tag\'s own words', () => {
+    expect(parseBadges('Merkintä:Outlet = Outlet\nMerkintä:Valmistettu Suomessa = flag:fi; Sale')).toEqual([
+      { tag: 'Merkintä:Outlet', label: 'Outlet' },
+      { tag: 'Merkintä:Valmistettu Suomessa', label: 'Valmistettu Suomessa', flag: 'fi' },
+      { tag: 'Sale', label: 'Sale' },
+    ]);
+    // A flag that cannot be drawn is not a flag.
+    expect(parseBadges('Made in France = flag:fr')).toEqual([{ tag: 'Made in France', label: 'Made in France' }]);
+    expect(parseBadges('')).toEqual([]);
+  });
+
+  it('gives a result the badges its tags call for, in the order of the rules', () => {
+    const rules = parseBadges('Merkintä:Outlet = Outlet; Merkintä:Valmistettu Suomessa = flag:fi');
+    const mug = { ...shoe, fields: { tags: 'alennettavissa, Merkintä:Valmistettu Suomessa, merkintä:outlet, Väri:Vaaleanvihreä' } };
+    expect(badgesFor(mug, rules).map((b) => b.label)).toEqual(['Outlet', 'Valmistettu Suomessa']);
+    expect(badgesFor({ ...shoe, fields: { tags: 'Väri:Musta' } }, rules)).toEqual([]);
+    expect(badgesFor(shoe, rules)).toEqual([]);
   });
 
   it('has no heart in the field while favourites are off', async () => {

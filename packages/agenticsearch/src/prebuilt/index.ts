@@ -43,6 +43,8 @@ export interface MountOptions {
   favourites?: boolean;
   /** "Add to cart" on every card, once the page has called `setCart`. The tool's own setting (off) by default. */
   cart?: boolean;
+  /** Badges on cards from the product's tags: "Tag = Label" or "Tag = flag:fi", one per line or separated by ";". */
+  badges?: string;
   testMode?: boolean;
 }
 
@@ -111,6 +113,7 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     openInNewTab: options.openInNewTab,
     favourites: options.favourites,
     cart: options.cart,
+    badges: options.badges,
   });
 }
 
@@ -277,6 +280,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.newTab) options.openInNewTab = d.newTab !== 'false';
   if (d.favourites) options.favourites = d.favourites !== 'false';
   if (d.cart) options.cart = d.cart !== 'false';
+  if (d.badges) options.badges = d.badges;
   if (d.test === 'true') options.testMode = true;
   return options;
 }

@@ -1,6 +1,7 @@
 import type { Hit } from '../client/types';
 import type { CartAdapter, CartProduct, CartVariant } from '../lib/cart';
 import { button, el, escapeHtml, fill, icon, openWhere } from '../lib/dom';
+import { badgesFor, type BadgeRule } from '../lib/badges';
 import { favouriteId, type Favourites } from '../lib/favourites';
 import type { Strings } from '../lib/i18n';
 
@@ -10,6 +11,8 @@ export type HitTemplate = (hit: Hit, helpers: { escape: typeof escapeHtml; posit
 export interface CardActions {
   strings: Strings;
   favourites?: Favourites | null;
+  /** Which tag gives which badge on the picture. */
+  badges?: BadgeRule[];
   cart?: CartAdapter | null;
   /** Called after a product went into the cart. */
   onAdd?: (hit: Hit, position: number) => void;
@@ -213,6 +216,23 @@ export function renderCard(hit: Hit, position: number, options: CardOptions = {}
       else img.remove();
     });
     media.appendChild(img);
+  }
+  // Badges from the product's tags, over the corner of the picture.
+  const badges = options.compact || !options.actions?.badges ? [] : badgesFor(hit, options.actions.badges);
+  if (badges.length) {
+    const row = el('span', 'sfas-hit-badges');
+    for (const badge of badges) {
+      if (badge.flag) {
+        const flag = el('span', `sfas-hit-flag sfas-hit-flag--${badge.flag}`);
+        flag.setAttribute('role', 'img');
+        flag.setAttribute('aria-label', badge.label);
+        flag.title = badge.label;
+        row.appendChild(flag);
+      } else {
+        row.appendChild(el('span', 'sfas-hit-badge', badge.label));
+      }
+    }
+    media.appendChild(row);
   }
   link.appendChild(media);
   const body = el('span', 'sfas-hit-body');
