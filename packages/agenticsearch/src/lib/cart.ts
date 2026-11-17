@@ -8,9 +8,19 @@ export interface CartVariant {
   available: boolean;
   /** The price as text, when it differs between variants. */
   price?: string;
+  /** This variant's value for each of the product's options, in their order: ["42", "Black"]. */
+  options?: string[];
 }
 
-export interface CartProduct { variants: CartVariant[] }
+export interface CartProduct {
+  variants: CartVariant[];
+  /**
+   * What the variants differ by, named as the shop names it ("Size",
+   * "Colour"). With these, the card asks for each by name; without, it shows
+   * one list of the variants' titles.
+   */
+  options?: Array<{ name: string; values: string[] }>;
+}
 
 /**
  * How "Add to cart" on a card reaches the shop's cart. The search itself

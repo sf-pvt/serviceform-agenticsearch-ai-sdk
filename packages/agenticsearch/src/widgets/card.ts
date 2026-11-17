@@ -1,5 +1,5 @@
 import type { Hit } from '../client/types';
-import type { CartAdapter, CartVariant } from '../lib/cart';
+import type { CartAdapter, CartProduct, CartVariant } from '../lib/cart';
 import { button, el, escapeHtml, fill, icon, openWhere } from '../lib/dom';
 import { favouriteId, type Favourites } from '../lib/favourites';
 import type { Strings } from '../lib/i18n';
@@ -58,8 +58,9 @@ function cartRow(hit: Hit, position: number, actions: CardActions): HTMLElement 
   const label = el('span', '', strings.addToCart);
   add.append(icon('cart'), label);
   row.appendChild(add);
-  let variants: CartVariant[] | null = null;
-  let select: HTMLSelectElement | null = null;
+  // Once a product with several variants was opened: which one is chosen now.
+  let chosen: (() => CartVariant | null) | null = null;
+  let settle = () => { add.disabled = false; say(strings.addToCart, ''); };
   let timer: ReturnType<typeof setTimeout> | null = null;
 
   const say = (text: string, state: '' | 'is-busy' | 'is-done' | 'is-error', title = '') => {
@@ -71,9 +72,8 @@ function cartRow(hit: Hit, position: number, actions: CardActions): HTMLElement 
   };
   const rest = (after: number) => {
     if (timer) clearTimeout(timer);
-    timer = setTimeout(() => { add.disabled = false; say(strings.addToCart, ''); }, after);
+    timer = setTimeout(() => settle(), after);
   };
-  const soldOut = () => { add.disabled = true; say(strings.soldOut, ''); };
 
   const put = async (variant: CartVariant | null) => {
     add.disabled = true;
@@ -89,39 +89,92 @@ function cartRow(hit: Hit, position: number, actions: CardActions): HTMLElement 
     }
   };
 
-  const choose = (list: CartVariant[]) => {
-    select = el('select', 'sfas-hit-variant');
-    select.setAttribute('aria-label', strings.chooseOption);
-    for (const v of list) {
-      const option = el('option', '', [v.title, v.price, v.available ? '' : strings.soldOut].filter(Boolean).join(' · '));
-      option.value = v.id;
-      option.disabled = !v.available;
-      select.appendChild(option);
+  const select = (name: string) => {
+    const field = el('label', 'sfas-hit-option');
+    field.appendChild(el('span', 'sfas-hit-option-name', name));
+    const input = el('select', 'sfas-hit-variant');
+    field.appendChild(input);
+    return { field, input };
+  };
+
+  /**
+   * The choice, drawn over the button. Where the shop names what its
+   * variants differ by, each is asked for by that name ("Size", "Colour");
+   * otherwise one list of the variants as the shop titles them.
+   */
+  const choose = (product: CartProduct) => {
+    const list = product.variants;
+    const names = (product.options || []).filter((o) => o && o.name && o.values?.length);
+    const byName = names.length > 0 && list.every((v) => Array.isArray(v.options) && v.options.length === names.length);
+    const box = el('div', 'sfas-hit-options');
+    const price = el('span', 'sfas-hit-option-price');
+    const start = list.find((v) => v.available) || list[0];
+    let draw = () => {};
+    if (byName) {
+      const inputs = names.map((option, at) => {
+        const { field, input } = select(option.name);
+        for (const value of option.values) { const o = el('option', '', value); o.value = value; input.appendChild(o); }
+        input.value = start.options![at];
+        box.appendChild(field);
+        return input;
+      });
+      chosen = () => list.find((v) => v.options!.every((value, i) => inputs[i].value === value)) || null;
+      draw = () => {
+        // A value that cannot be bought with what else is chosen says so, and stays choosable: the other choice may be the one to change.
+        inputs.forEach((input, at) => {
+          for (const o of Array.from(input.options)) {
+            const open = list.some((v) => v.available && v.options![at] === o.value && v.options!.every((value, i) => i === at || inputs[i].value === value));
+            o.textContent = open ? o.value : `${o.value} · ${strings.soldOut}`;
+          }
+        });
+      };
+      inputs.forEach((input) => input.addEventListener('change', () => settle()));
+      inputs[0].focus();
+    } else {
+      const { field, input } = select(strings.chooseOption);
+      for (const v of list) {
+        const o = el('option', '', v.available ? v.title : `${v.title} · ${strings.soldOut}`);
+        o.value = v.id;
+        input.appendChild(o);
+      }
+      input.value = start.id;
+      box.appendChild(field);
+      chosen = () => list.find((v) => v.id === input.value) || null;
+      input.addEventListener('change', () => settle());
     }
-    const firstOpen = list.find((v) => v.available);
-    if (firstOpen) select.value = firstOpen.id;
-    row.insertBefore(select, add);
-    select.focus();
+    box.appendChild(price);
+    row.insertBefore(box, add);
+    settle = () => {
+      draw();
+      const v = chosen!();
+      price.textContent = v?.price || '';
+      price.hidden = !v?.price;
+      if (v && v.available) { add.disabled = false; say(strings.addToCart, ''); }
+      else { add.disabled = true; say(strings.soldOut, ''); }
+    };
+    settle();
+    if (!byName) box.querySelector('select')?.focus();
   };
 
   add.addEventListener('click', async (event) => {
     event.preventDefault();
     event.stopPropagation();
     if (add.disabled) return;
-    if (select && variants) { put(variants.find((v) => v.id === select!.value) || null); return; }
+    if (chosen) { put(chosen()); return; }
     if (!cart.product) { put(null); return; }
     add.disabled = true;
     say(strings.addToCart, 'is-busy');
+    let product: CartProduct | null;
     try {
-      variants = (await cart.product(hit))?.variants || [];
+      product = await cart.product(hit);
     } catch (error) {
       say(strings.cartError, 'is-error', error instanceof Error ? error.message : '');
       rest(ERROR_MS);
       return;
     }
-    const open = variants.filter((v) => v.available);
-    if (variants.length && !open.length) { soldOut(); return; }
-    if (variants.length > 1) { choose(variants); add.disabled = false; say(strings.addToCart, ''); return; }
+    const variants = product?.variants || [];
+    if (variants.length && !variants.some((v) => v.available)) { add.disabled = true; say(strings.soldOut, ''); return; }
+    if (product && variants.length > 1) { choose(product); return; }
     put(variants[0] || null);
   });
   return row;

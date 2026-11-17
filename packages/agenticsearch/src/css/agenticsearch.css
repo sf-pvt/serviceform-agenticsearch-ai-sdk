@@ -157,7 +157,13 @@ html.sfas-lock { overflow: hidden; }
 .sfas .sfas-hit-add.is-busy { opacity: 0.7; cursor: progress; }
 .sfas .sfas-hit-add.is-done, .sfas .sfas-hit-add.is-done:hover { background: var(--sfas-text); color: var(--sfas-surface); opacity: 1; }
 .sfas .sfas-hit-add.is-error, .sfas .sfas-hit-add.is-error:hover { background: var(--sfas-surface); color: var(--sfas-text); border-style: dashed; opacity: 1; }
-.sfas .sfas-hit-variant { width: 100%; height: 38px; padding: 0 30px 0 10px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background-color: var(--sfas-surface); color: var(--sfas-text); font-size: 13.5px; }
+.sfas-hit-options { display: flex; flex-direction: column; gap: 8px; }
+.sfas .sfas-hit-option { display: flex; flex-direction: column; gap: 4px; }
+.sfas-hit-option-name { font-size: 12px; font-weight: 600; color: var(--sfas-muted); }
+.sfas .sfas-hit-variant { width: 100%; height: 40px; padding: 0 34px 0 12px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background: var(--sfas-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; color: var(--sfas-text); font-size: 13.5px; line-height: 1.2; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.sfas .sfas-hit-variant:focus-visible { border-color: var(--sfas-text); outline: none; }
+.sfas-hit-option-price { font-weight: 700; font-size: 14px; color: var(--sfas-accent); }
+.sfas-hit-option-price[hidden] { display: none; }
 
 .sfas-hits--rows { display: block; }
 .sfas .sfas-hits--rows a.sfas-hit-link, .sfas .sfas-hits--rows a.sfas-hit-link:hover { flex-direction: row; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: var(--sfas-r-s); background: none; box-shadow: none; transform: none; }

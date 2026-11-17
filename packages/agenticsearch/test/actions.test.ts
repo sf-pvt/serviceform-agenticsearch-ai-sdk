@@ -124,25 +124,57 @@ describe('add to cart', () => {
     expect(buttons[0].textContent).toBe('Added');
   });
 
-  it('lets a size be chosen first when the product has several', async () => {
+  it('asks for each option by the name the shop gives it when the product has several variants', async () => {
     const add = vi.fn(async () => {});
-    const variants = [{ id: 'v1', title: '41', available: false }, { id: 'v2', title: '42', available: true }, { id: 'v3', title: '43', available: true }];
-    const { node, search } = await page({ add, product: async () => ({ variants }) });
+    const variants = [
+      { id: 'v1', title: '41 / Black', available: false, options: ['41', 'Black'] },
+      { id: 'v2', title: '42 / Black', available: true, options: ['42', 'Black'] },
+      { id: 'v3', title: '42 / Brown', available: true, options: ['42', 'Brown'], price: '€519.00' },
+    ];
+    const options = [{ name: 'Size', values: ['41', '42'] }, { name: 'Colour', values: ['Black', 'Brown'] }];
+    const { node, search } = await page({ add, product: async () => ({ variants, options }) });
     const button = node.querySelector<HTMLButtonElement>('.sfas-hit-add')!;
     button.click();
     await tick(5);
     expect(add).not.toHaveBeenCalled();
-    const select = node.querySelector<HTMLSelectElement>('.sfas-hit-variant')!;
-    expect(select.options).toHaveLength(3);
-    expect(select.options[0].disabled).toBe(true);
-    expect(select.value).toBe('v2');
+    expect([...node.querySelectorAll('.sfas-hit-option-name')].map((n) => n.textContent)).toEqual(['Size', 'Colour']);
+    const [size, colour] = [...node.querySelectorAll<HTMLSelectElement>('.sfas-hit-variant')];
+    // Opens on the first one that can be bought.
+    expect([size.value, colour.value]).toEqual(['42', 'Black']);
+    expect(size.options[0].textContent).toBe('41 · Sold out');
     // Drawing again with the same results leaves the choice where it is.
     search.render();
-    expect(node.querySelector('.sfas-hit-variant')).toBe(select);
-    select.value = 'v3';
+    expect(node.querySelector('.sfas-hit-variant')).toBe(size);
+    // A pair that does not exist, or is sold out, cannot be added.
+    size.value = '41';
+    size.dispatchEvent(new Event('change'));
+    expect(button.disabled).toBe(true);
+    expect(button.textContent).toBe('Sold out');
+    size.value = '42';
+    size.dispatchEvent(new Event('change'));
+    colour.value = 'Brown';
+    colour.dispatchEvent(new Event('change'));
+    expect(button.disabled).toBe(false);
+    expect(node.querySelector('.sfas-hit-option-price')!.textContent).toBe('€519.00');
     button.click();
     await tick(5);
     expect((add.mock.calls[0] as any)[1]).toMatchObject({ id: 'v3' });
+  });
+
+  it('shows one named list when the shop gives variants without option names', async () => {
+    const add = vi.fn(async () => {});
+    const variants = [{ id: 'v1', title: '41', available: false }, { id: 'v2', title: '42', available: true }];
+    const { node } = await page({ add, product: async () => ({ variants }) });
+    const button = node.querySelector<HTMLButtonElement>('.sfas-hit-add')!;
+    button.click();
+    await tick(5);
+    expect(node.querySelector('.sfas-hit-option-name')!.textContent).toBe('Choose an option');
+    const select = node.querySelector<HTMLSelectElement>('.sfas-hit-variant')!;
+    expect(select.value).toBe('v2');
+    expect(select.options[0].textContent).toBe('41 · Sold out');
+    button.click();
+    await tick(5);
+    expect((add.mock.calls[0] as any)[1]).toMatchObject({ id: 'v2' });
   });
 
   it('says so when the shop refuses, and when everything is sold out', async () => {
