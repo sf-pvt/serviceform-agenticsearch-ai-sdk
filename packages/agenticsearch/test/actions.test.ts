@@ -101,7 +101,7 @@ describe('favourites', () => {
 });
 
 describe('favourites in a header box', () => {
-  const shoe = { id: '7', title: 'AllRound Epic', price: '€499', monthly: '', url: 'https://shop.test/p/7', image: '', outOfStock: false };
+  const shoe = { id: '7', title: 'Trail Runner', price: '€499', monthly: '', url: 'https://shop.test/p/7', image: '', outOfStock: false };
 
   it('counts what is saved on a heart in the field and lists it when pressed', async () => {
     favouritesFor('tool1').toggle(shoe);
@@ -118,7 +118,7 @@ describe('favourites in a header box', () => {
     heart.click();
     expect(panel.hidden).toBe(false);
     expect(panel.querySelector('.sfas-panel-title')!.textContent).toBe('Favourites (1)');
-    expect(panel.querySelector('.sfas-hit-title')!.textContent).toBe('AllRound Epic');
+    expect(panel.querySelector('.sfas-hit-title')!.textContent).toBe('Trail Runner');
     expect(panel.querySelector<HTMLAnchorElement>('.sfas-panel-all')!.getAttribute('href')).toBe('/search?favourites=1');
     // Taken off elsewhere on the page: the heart in the field goes with it.
     favouritesFor('tool1').toggle(shoe);
