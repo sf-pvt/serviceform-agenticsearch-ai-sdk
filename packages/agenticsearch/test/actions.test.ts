@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { agenticsearch, favourites, favouritesFor, infiniteHits, mount, setCart, type CartAdapter } from '../src';
+import { agenticsearch, autocomplete, favourites, favouritesFor, infiniteHits, mount, setCart, type CartAdapter } from '../src';
 import { browseBody, clientWith, configBody, fakeFetch, product, tick } from './helpers';
 
 // A storage of the test's own: what the runtime offers as localStorage differs between Node versions.
@@ -97,6 +97,58 @@ describe('favourites', () => {
     expect(node.querySelectorAll('.sfas-hit-fav')).toHaveLength(2);
     expect((node.querySelector('.sfas-page-saved') as HTMLElement).hidden).toBe(false);
     vi.unstubAllGlobals();
+  });
+});
+
+describe('favourites in a header box', () => {
+  const shoe = { id: '7', title: 'AllRound Epic', price: '€499', monthly: '', url: 'https://shop.test/p/7', image: '', outOfStock: false };
+
+  it('counts what is saved on a heart in the field and lists it when pressed', async () => {
+    favouritesFor('tool1').toggle(shoe);
+    const { client } = clientWith(routes());
+    const node = host();
+    agenticsearch({ searchClient: client, insights: false, favourites: true, results: false })
+      .addWidgets([autocomplete({ container: node, searchPageHref: '/search' })]).start();
+    await tick(5);
+    const heart = node.querySelector<HTMLButtonElement>('.sfas-input-fav')!;
+    expect(heart.hidden).toBe(false);
+    expect(heart.textContent).toBe('1');
+    const panel = node.querySelector<HTMLElement>('.sfas-panel')!;
+    expect(panel.hidden).toBe(true);
+    heart.click();
+    expect(panel.hidden).toBe(false);
+    expect(panel.querySelector('.sfas-panel-title')!.textContent).toBe('Favourites (1)');
+    expect(panel.querySelector('.sfas-hit-title')!.textContent).toBe('AllRound Epic');
+    expect(panel.querySelector<HTMLAnchorElement>('.sfas-panel-all')!.getAttribute('href')).toBe('/search?favourites=1');
+    // Taken off elsewhere on the page: the heart in the field goes with it.
+    favouritesFor('tool1').toggle(shoe);
+    expect(heart.hidden).toBe(true);
+  });
+
+  it('has no heart in the field while favourites are off', async () => {
+    favouritesFor('tool1').toggle(shoe);
+    const { client } = clientWith(routes());
+    const node = host();
+    agenticsearch({ searchClient: client, insights: false, results: false }).addWidgets([autocomplete({ container: node })]).start();
+    await tick(5);
+    expect(node.querySelector<HTMLButtonElement>('.sfas-input-fav')!.hidden).toBe(true);
+  });
+
+  it('opens a results page on the saved products from favourites=1 in its address', async () => {
+    favouritesFor('tool1').toggle(shoe);
+    history.replaceState(null, '', `${window.location.pathname}?favourites=1`);
+    const { client, calls } = clientWith(routes());
+    const list = host();
+    const search = agenticsearch({ searchClient: client, insights: false, favourites: true, routing: true });
+    search.addWidgets([infiniteHits({ container: list })]).start();
+    await tick(5);
+    expect(calls.filter((c) => c.url.includes('/browse/'))).toHaveLength(0);
+    expect(list.querySelectorAll('.sfas-hit')).toHaveLength(1);
+    // Back to the catalogue: the address says so too.
+    search.clearRefinement('favourites');
+    await tick(5);
+    expect(window.location.search).toBe('');
+    expect(list.querySelectorAll('.sfas-hit')).toHaveLength(2);
   });
 });
 

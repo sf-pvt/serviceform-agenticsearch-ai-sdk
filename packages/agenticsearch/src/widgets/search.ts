@@ -3,6 +3,7 @@ import type { Widget } from '../core/types';
 import { button, clear, debounce, el, icon, openWhere, resolveContainer, type Container } from '../lib/dom';
 import { keepForReturn, takeReturn } from '../lib/return';
 import { aiAnswer } from './ai';
+import { FAVOURITES_PARAM } from '../core/agenticsearch';
 import { renderCard } from './card';
 
 export interface SearchBoxParams {
@@ -142,6 +143,13 @@ export function autocomplete(params: AutocompleteParams): Widget {
   const wrap = el('div', 'sfas-autocomplete');
   wrap.setAttribute('role', 'search');
   const { form, input, reset, showFace } = field(params.placeholder || '');
+  // The heart in the field, with how many are saved: opens them in the panel.
+  const saved = button('sfas-input-fav');
+  saved.append(icon('heart'), el('b'));
+  saved.hidden = true;
+  form.appendChild(saved);
+  let savedView = false;
+  let offSaved = () => {};
   const panel = el('div', 'sfas-panel');
   // A field too narrow for two columns (a header box) on a screen that has
   // the room: the panel opens wider than its field, from whichever edge of
@@ -211,8 +219,11 @@ export function autocomplete(params: AutocompleteParams): Widget {
       wrap.appendChild(panel);
       root.appendChild(wrap);
       answer.init?.(instance.context());
+      saved.addEventListener('click', () => { savedView = !(savedView && open); open = true; active = -1; redraw(); if (savedView) input.focus(); });
+      offSaved = instance.favourites.subscribe(() => redraw());
       input.addEventListener('input', () => {
         reset.hidden = !input.value;
+        savedView = false;
         open = true;
         active = -1;
         if (instance.ai.status !== 'idle') instance.resetConversation();
@@ -263,13 +274,40 @@ export function autocomplete(params: AutocompleteParams): Widget {
       return box;
     };
     const answering = aiOn && ai.status !== 'idle' && ai.status !== 'error';
+    // What the visitor saved: counted on the heart in the field, and listed in
+    // the panel when the heart is pressed or the field is focused with nothing typed.
+    const kept = instance.favouritesEnabled() ? instance.favourites.all() : [];
+    saved.hidden = !kept.length;
+    saved.lastElementChild!.textContent = kept.length ? String(kept.length) : '';
+    saved.setAttribute('aria-label', `${s.favourites} (${kept.length})`);
+    saved.title = s.favourites;
+    saved.setAttribute('aria-pressed', savedView && open ? 'true' : 'false');
+    if (!kept.length) savedView = false;
+    const listSaved = (column: HTMLElement) => {
+      const box = section(`${s.favourites} (${kept.length})`, column);
+      const list = el('ul', 'sfas-hits sfas-hits--rows');
+      kept.slice(0, 6).forEach((hit, i) => {
+        const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
+        row.querySelector('a')?.classList.add('sfas-option');
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+      if (pageHref) {
+        const all = el('a', 'sfas-panel-all sfas-option', `${s.showAll} (${kept.length})`);
+        all.href = `${pageHref}${pageHref.includes('?') ? '&' : '?'}${FAVOURITES_PARAM}=1`;
+        all.appendChild(icon('arrow'));
+        box.appendChild(all);
+      }
+    };
     // "Ask AI" is a bar across the top of the panel, over both columns.
     let askBar: HTMLElement | null = null;
     if (answering) {
       left.appendChild(answerHost);
       answer.render?.(instance.context());
     }
-    if (query) {
+    if (savedView && kept.length) {
+      listSaved(right);
+    } else if (query) {
       if (aiOn && !answering) {
         const ask = button('sfas-panel-ask sfas-option');
         ask.appendChild(icon('spark'));
@@ -343,6 +381,8 @@ export function autocomplete(params: AutocompleteParams): Widget {
         box.appendChild(b);
       }
     }
+    // Nothing typed yet: what was saved is offered beside the example questions.
+    if (!query && !savedView && !answering && kept.length) listSaved(right);
     if (askBar) panel.appendChild(askBar);
     if (left.childNodes.length || right.childNodes.length) {
       const grid = el('div', `sfas-panel-grid${right.childNodes.length ? '' : ' sfas-panel-grid--single'}${left.childNodes.length ? '' : ' sfas-panel-grid--wide'}`);
@@ -358,6 +398,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
     if (active >= 0) setActive(Math.min(active, options().length - 1));
   }, () => {
     document.removeEventListener('pointerdown', onDocument);
+    offSaved();
     clear(root);
   })(params);
 }

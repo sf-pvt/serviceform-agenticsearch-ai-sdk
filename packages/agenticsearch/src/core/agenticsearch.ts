@@ -49,6 +49,8 @@ type Listener = (context: RenderContext) => void;
 type StateInput = Partial<SearchState> | ((state: SearchState) => Partial<SearchState>);
 
 const SETTLED_MS = 1500;
+/** In the address of a results page: show what the visitor saved. */
+export const FAVOURITES_PARAM = 'favourites';
 const newAi = (): AiState => ({ status: 'idle', question: '', answer: null, history: [] });
 
 /** Whether one reading of a question has a filter, a range or a kind the other has not. */
@@ -133,6 +135,7 @@ export class AgenticSearch {
       const fromUrl = this.router.read();
       if (fromUrl.q || isFiltered(fromUrl) || fromUrl.sort !== 'relevance' || fromUrl.page > 1) this.state = fromUrl;
       this.router.listen((state) => this.setState(state, { route: false, resetPage: false }));
+      try { this.favouritesOnly = new URL(window.location.href).searchParams.get(FAVOURITES_PARAM) === '1'; } catch { /* no address to read */ }
     }
     const context = this.context();
     for (const widget of this.widgets) widget.init?.(context);
@@ -191,7 +194,7 @@ export class AgenticSearch {
   submit(query: string, how: { ask?: boolean } = {}): void {
     const q = String(query || '').trim();
     // Words entered are for the catalogue, not for the handful that was saved.
-    this.favouritesOnly = false;
+    this.showSaved(false);
     this.setState({ ...emptyState(), q });
     const wantsAi = how.ask !== undefined ? how.ask : this.aiEnabled();
     if (wantsAi && q) this.ask(q);
@@ -236,7 +239,7 @@ export class AgenticSearch {
     if (key === 'sort') patch.sort = 'relevance';
     if (key === 'kind') patch.kind = '';
     if (key === 'in_stock') patch.inStock = false;
-    if (key === 'favourites') this.favouritesOnly = false;
+    if (key === 'favourites') this.showSaved(false);
     if (key.startsWith('q:')) {
       const words = ` ${s.q.split(/\s+/).join(' ')} `;
       const at = words.toLowerCase().indexOf(` ${key.slice(2).toLowerCase()} `);
@@ -247,7 +250,7 @@ export class AgenticSearch {
 
   /** Every filter off. The words stay unless `query` is true. */
   clearRefinements(how: { query?: boolean } = {}): void {
-    this.favouritesOnly = false;
+    this.showSaved(false);
     this.setState({ ...emptyState(), q: how.query ? '' : this.state.q, sort: this.state.sort });
   }
 
@@ -267,10 +270,27 @@ export class AgenticSearch {
   /** Shows only the saved products (as a search of their own, with no request), or the catalogue again. */
   setFavouritesOnly(on: boolean): void {
     if (this.favouritesOnly === !!on) return;
-    this.favouritesOnly = !!on;
+    this.showSaved(!!on);
     this.state = { ...this.state, page: 1 };
     this.emit('change');
     this.search();
+  }
+
+  /**
+   * `favourites=1` in the address is the saved products as a page of their
+   * own, so a header's "Favourites" can link to it. Only where the search
+   * keeps its state in the address.
+   */
+  private showSaved(on: boolean): void {
+    this.favouritesOnly = on;
+    if (!this.router || typeof window === 'undefined') return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(FAVOURITES_PARAM) === on) return;
+      if (on) url.searchParams.set(FAVOURITES_PARAM, '1');
+      else url.searchParams.delete(FAVOURITES_PARAM);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    } catch { /* an address that cannot be rewritten is left as it is */ }
   }
 
   /** The cart "Add to cart" adds to, when this search shows the button and the page has given it one. */
@@ -320,7 +340,7 @@ export class AgenticSearch {
     const seq = ++this.searchSeq;
     const asked = this.state;
     this.abort?.abort();
-    if (this.favouritesOnly) {
+    if (this.favouritesOnly && this.favouritesEnabled()) {
       this.abort = null;
       this.results = this.savedResults(asked);
       this.status = 'idle';
