@@ -143,6 +143,30 @@ export function autocomplete(params: AutocompleteParams): Widget {
   wrap.setAttribute('role', 'search');
   const { form, input, reset, showFace } = field(params.placeholder || '');
   const panel = el('div', 'sfas-panel');
+  // A field too narrow for two columns (a header box) on a screen that has
+  // the room: the panel opens wider than its field, from whichever edge of
+  // the field keeps it on the screen. On a phone it stays the field's width.
+  const WIDE_FIELD = 640;
+  const WIDE_PANEL = 720;
+  const placePanel = () => {
+    const view = typeof window !== 'undefined' ? window.innerWidth : 0;
+    const box = wrap.getBoundingClientRect();
+    const wide = box.width > 0 && box.width < WIDE_FIELD && view >= 760;
+    panel.classList.toggle('sfas-panel--wide', wide);
+    if (!wide) { panel.style.width = ''; panel.style.left = ''; panel.style.right = ''; return; }
+    const width = Math.min(WIDE_PANEL, view - 24);
+    panel.style.width = `${width}px`;
+    // Opens towards the middle of the screen: from the field's right edge when the field is on the
+    // right (a header), from its left edge otherwise. Either way it is pushed back in if it would leave the screen.
+    const onRight = box.left + box.width / 2 > view / 2;
+    if (onRight) {
+      panel.style.left = 'auto';
+      panel.style.right = `${Math.min(0, box.right - width - 12)}px`;
+    } else {
+      panel.style.right = 'auto';
+      panel.style.left = `${Math.min(0, view - 12 - (box.left + width))}px`;
+    }
+  };
   panel.hidden = true;
   const answerHost = el('div');
   const answer = aiAnswer({ container: answerHost, showHits: true });
@@ -239,6 +263,8 @@ export function autocomplete(params: AutocompleteParams): Widget {
       return box;
     };
     const answering = aiOn && ai.status !== 'idle' && ai.status !== 'error';
+    // "Ask AI" is a bar across the top of the panel, over both columns.
+    let askBar: HTMLElement | null = null;
     if (answering) {
       left.appendChild(answerHost);
       answer.render?.(instance.context());
@@ -253,7 +279,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
         ask.appendChild(words);
         ask.appendChild(el('kbd', 'sfas-panel-key', '↵', { 'aria-hidden': 'true' }));
         ask.addEventListener('click', () => { open = true; void instance.ask(query); });
-        left.appendChild(ask);
+        askBar = ask;
       }
       if (pages.length) {
         const box = section(s.pages, left);
@@ -304,7 +330,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
           box.appendChild(all);
         }
       }
-      if (!left.childNodes.length && !right.childNodes.length && status === 'idle') {
+      if (!askBar && !left.childNodes.length && !right.childNodes.length && status === 'idle') {
         left.appendChild(el('div', 'sfas-panel-empty', s.emptyFor.replace('{q}', `“${query}”`)));
       }
     } else if (!answering && params.showQuestions !== false && aiOn && config.questions.length) {
@@ -317,6 +343,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
         box.appendChild(b);
       }
     }
+    if (askBar) panel.appendChild(askBar);
     if (left.childNodes.length || right.childNodes.length) {
       const grid = el('div', `sfas-panel-grid${right.childNodes.length ? '' : ' sfas-panel-grid--single'}${left.childNodes.length ? '' : ' sfas-panel-grid--wide'}`);
       if (left.childNodes.length) grid.appendChild(left);
@@ -325,6 +352,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
     }
     const show = open && panel.childNodes.length > 0;
     panel.hidden = !show;
+    if (show) placePanel();
     input.setAttribute('aria-expanded', String(show));
     wrap.classList.toggle('is-open', show);
     if (active >= 0) setActive(Math.min(active, options().length - 1));
