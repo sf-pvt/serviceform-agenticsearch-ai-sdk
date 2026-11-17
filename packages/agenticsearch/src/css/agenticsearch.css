@@ -184,6 +184,12 @@ html.sfas-lock { overflow: hidden; }
 .sfas-hits--rows .sfas-hit-meta { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sfas-hits--rows .sfas-hit-price { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin: 0; padding: 0; font-size: 13.5px; color: inherit; text-align: right; white-space: nowrap; }
 .sfas-hits--rows .sfas-hit-monthly { display: block; margin: 0; }
+/* A saved product in the dropdown: its heart at the end of the row takes it off the list. */
+.sfas-hits--rows .sfas-hit--saved { display: flex; align-items: center; gap: 4px; }
+.sfas-hits--rows .sfas-hit--saved > a.sfas-hit-link { flex: 1; min-width: 0; }
+.sfas .sfas-hit-unsave { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: var(--sfas-pill); background: none; color: var(--sfas-accent); cursor: pointer; }
+.sfas .sfas-hit-unsave:hover, .sfas .sfas-hit-unsave:focus-visible { background: var(--sfas-soft); }
+.sfas .sfas-hit-unsave svg { width: 16px; height: 16px; fill: currentColor; }
 
 .sfas-hit--ghost { border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-m); overflow: hidden; }
 .sfas-ghost-line { display: block; height: 12px; width: 100%; border-radius: 6px; background: var(--sfas-soft); }

@@ -125,6 +125,29 @@ describe('favourites in a header box', () => {
     expect(heart.hidden).toBe(true);
   });
 
+  it('takes one saved product off the list from its row, and keeps the list open', async () => {
+    const other = { ...shoe, id: '8', title: 'Road Runner', url: 'https://shop.test/p/8' };
+    favouritesFor('tool1').toggle(shoe);
+    favouritesFor('tool1').toggle(other);
+    const { client } = clientWith(routes());
+    const node = host();
+    agenticsearch({ searchClient: client, insights: false, favourites: true, results: false })
+      .addWidgets([autocomplete({ container: node, searchPageHref: '/search' })]).start();
+    await tick(5);
+    node.querySelector<HTMLButtonElement>('.sfas-input-fav')!.click();
+    const panel = node.querySelector<HTMLElement>('.sfas-panel')!;
+    const buttons = panel.querySelectorAll<HTMLButtonElement>('.sfas-hit-unsave');
+    expect(buttons.length).toBe(2);
+    expect(buttons[0].getAttribute('aria-label')).toBe('Remove from favourites: Road Runner');
+    buttons[0].click();
+    expect(panel.hidden).toBe(false);
+    expect(panel.querySelector('.sfas-panel-title')!.textContent).toBe('Favourites (1)');
+    expect(panel.querySelectorAll('.sfas-hit-title').length).toBe(1);
+    expect(panel.querySelector('.sfas-hit-title')!.textContent).toBe('Trail Runner');
+    expect(favouritesFor('tool1').has(other)).toBe(false);
+    expect(node.querySelector('.sfas-input-fav')!.textContent).toBe('1');
+  });
+
   it('has no heart in the field while favourites are off', async () => {
     favouritesFor('tool1').toggle(shoe);
     const { client } = clientWith(routes());

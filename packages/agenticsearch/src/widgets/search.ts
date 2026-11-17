@@ -1,6 +1,7 @@
 import { connectAutocomplete, connectSearchBox } from '../connectors';
 import type { Widget } from '../core/types';
 import { button, clear, debounce, el, icon, openWhere, resolveContainer, type Container } from '../lib/dom';
+import { favouriteId } from '../lib/favourites';
 import { keepForReturn, takeReturn } from '../lib/return';
 import { aiAnswer } from './ai';
 import { FAVOURITES_PARAM } from '../core/agenticsearch';
@@ -289,6 +290,23 @@ export function autocomplete(params: AutocompleteParams): Widget {
       kept.slice(0, 6).forEach((hit, i) => {
         const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
         row.querySelector('a')?.classList.add('sfas-option');
+        // Each saved product can be taken off the list here; the list stays open.
+        const off = button('sfas-hit-unsave');
+        off.appendChild(icon('heart'));
+        off.setAttribute('aria-label', `${s.favouriteRemove}: ${hit.title}`);
+        off.title = s.favouriteRemove;
+        off.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!instance.favourites.has(hit)) return;
+          instance.favourites.toggle(hit);
+          // The heart on this product's cards elsewhere on the page goes out with it.
+          off.ownerDocument.querySelectorAll<HTMLElement>('.sfas-hit-fav').forEach((other) => {
+            if (other.dataset.sfasFav === favouriteId(hit)) other.setAttribute('aria-pressed', 'false');
+          });
+        });
+        row.classList.add('sfas-hit--saved');
+        row.appendChild(off);
         list.appendChild(row);
       });
       box.appendChild(list);
