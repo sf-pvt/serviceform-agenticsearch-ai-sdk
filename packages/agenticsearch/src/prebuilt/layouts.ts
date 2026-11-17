@@ -2,7 +2,7 @@ import { isFiltered } from '../client/query';
 import type { AgenticSearch } from '../core/agenticsearch';
 import type { Widget } from '../core/types';
 import { button, el, icon } from '../lib/dom';
-import { aiAnswer, autocomplete, clearRefinements, currentRefinements, dynamicFacets, inStock, infiniteHits, note, searchBox, sortBy, stats } from '../widgets';
+import { aiAnswer, autocomplete, clearRefinements, currentRefinements, dynamicFacets, favourites, inStock, infiniteHits, note, searchBox, sortBy, stats } from '../widgets';
 
 export interface LayoutOptions {
   placeholder?: string;
@@ -37,6 +37,7 @@ export function pageLayout(host: HTMLElement, instance: AgenticSearch, options: 
   const sortTitle = el('div', 'sfas-facet-title');
   const sort = el('div', 'sfas-page-sort');
   sortGroup.append(sortTitle, sort);
+  const saved = el('div', 'sfas-page-saved');
   const stock = el('div', 'sfas-page-stock');
   const facets = el('div');
   const clearHost = el('div', 'sfas-side-clear');
@@ -57,7 +58,7 @@ export function pageLayout(host: HTMLElement, instance: AgenticSearch, options: 
   const results = el('div');
 
   tools.append(filterButton, chips);
-  side.append(sideHead, count, sortGroup, clearHost, stock, facets, sideDone);
+  side.append(sideHead, count, sortGroup, clearHost, saved, stock, facets, sideDone);
   main.append(top, questions, answer, tools, said, results);
   body.append(side, main);
   page.append(body);
@@ -125,6 +126,7 @@ export function pageLayout(host: HTMLElement, instance: AgenticSearch, options: 
       stats({ container: count }),
       sortBy({ container: sort }),
       currentRefinements({ container: chips }),
+      favourites({ container: saved }),
       inStock({ container: stock }),
       dynamicFacets({ container: facets }),
       clearRefinements({ container: clearHost }),

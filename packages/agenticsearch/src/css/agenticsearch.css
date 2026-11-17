@@ -142,6 +142,23 @@ html.sfas-lock { overflow: hidden; }
 .sfas-hit-monthly { margin-left: 8px; font-weight: 500; font-size: 12.5px; color: var(--sfas-muted); }
 .sfas-hit--out .sfas-hit-image { opacity: 0.5; }
 
+/* A card's own actions: the heart over the picture, "Add to cart" under the card. */
+.sfas-hit { position: relative; }
+.sfas .sfas-hit-fav { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.92); color: var(--sfas-text); box-shadow: 0 1px 4px rgb(0 0 0 / 0.14); cursor: pointer; }
+.sfas .sfas-hit-fav:hover { color: var(--sfas-accent); }
+.sfas .sfas-hit-fav[aria-pressed="true"] { color: var(--sfas-accent); }
+.sfas .sfas-hit-fav[aria-pressed="true"] svg { fill: currentColor; }
+.sfas-hit--buyable { display: flex; flex-direction: column; }
+.sfas .sfas-hit--buyable > a.sfas-hit-link, .sfas .sfas-hit--buyable > a.sfas-hit-link:hover { height: auto; flex: 1; }
+.sfas-hit-buy { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.sfas .sfas-hit-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 14px; border: 1px solid var(--sfas-text); border-radius: var(--sfas-r-s); background: var(--sfas-surface); color: var(--sfas-text); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+.sfas .sfas-hit-add:hover { background: var(--sfas-text); color: var(--sfas-surface); }
+.sfas .sfas-hit-add:disabled { opacity: 0.55; cursor: default; }
+.sfas .sfas-hit-add.is-busy { opacity: 0.7; cursor: progress; }
+.sfas .sfas-hit-add.is-done, .sfas .sfas-hit-add.is-done:hover { background: var(--sfas-text); color: var(--sfas-surface); opacity: 1; }
+.sfas .sfas-hit-add.is-error, .sfas .sfas-hit-add.is-error:hover { background: var(--sfas-surface); color: var(--sfas-text); border-style: dashed; opacity: 1; }
+.sfas .sfas-hit-variant { width: 100%; height: 38px; padding: 0 30px 0 10px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background-color: var(--sfas-surface); color: var(--sfas-text); font-size: 13.5px; }
+
 .sfas-hits--rows { display: block; }
 .sfas .sfas-hits--rows a.sfas-hit-link, .sfas .sfas-hits--rows a.sfas-hit-link:hover { flex-direction: row; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: var(--sfas-r-s); background: none; box-shadow: none; transform: none; }
 .sfas-hits--rows .sfas-hit-media { flex: none; width: 52px; aspect-ratio: 1; border-radius: var(--sfas-r-s); }
@@ -251,6 +268,12 @@ html.sfas-lock { overflow: hidden; }
 .sfas-page-sortgroup { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
 .sfas .sfas-page-sortgroup .sfas-sort { display: block; width: 100%; }
 .sfas-page-stock { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
+.sfas-page-saved { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
+.sfas-page-saved[hidden] { display: none; }
+.sfas .sfas-toggle--fav .sfas-icon { display: flex; color: var(--sfas-accent); }
+.sfas .sfas-toggle--fav .sfas-icon svg { width: 16px; height: 16px; }
+.sfas .sfas-toggle--fav.is-empty { color: var(--sfas-muted); cursor: default; }
+.sfas .sfas-toggle-count { margin-left: auto; font-weight: 600; font-size: 12.5px; color: var(--sfas-muted); }
 .sfas-side-clear { text-align: center; }
 .sfas .sfas-side-clear .sfas-clear { display: block; width: 100%; margin: 0 0 12px; padding: 8px 0 2px; font-size: 13px; font-weight: 600; color: var(--sfas-accent); text-decoration: none; }
 .sfas .sfas-side-clear .sfas-clear[hidden] { display: none; }

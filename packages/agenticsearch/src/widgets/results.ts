@@ -1,9 +1,17 @@
 import { connectClearRefinements, connectCurrentRefinements, connectHits, connectInStock, connectInfiniteHits, connectNote, connectPagination, connectSortBy, connectStats } from '../connectors';
 import type { Hit, SortId } from '../client/types';
 import type { Widget } from '../core/types';
-import { button, clear, clickEmptyTarget, el, emptyTarget, fill, resolveContainer, type Container } from '../lib/dom';
+import { button, clear, clickEmptyTarget, el, emptyTarget, fill, icon, resolveContainer, type Container } from '../lib/dom';
 import type { AgenticSearch } from '../core/agenticsearch';
-import { renderCard, renderSkeleton, type HitTemplate } from './card';
+import { renderCard, renderSkeleton, type CardActions, type HitTemplate } from './card';
+
+/** What this search's cards can do, from its settings: nothing, unless favourites or a cart are on. */
+export function cardActions(instance: AgenticSearch): CardActions | undefined {
+  const favourites = instance.favouritesEnabled() ? instance.favourites : null;
+  const cart = instance.cart();
+  if (!favourites && !cart) return undefined;
+  return { strings: instance.strings, favourites, cart };
+}
 
 export interface HitsParams {
   container: Container;
@@ -40,8 +48,8 @@ function emptyBlock(instance: AgenticSearch, query: string, template?: (query: s
   return empty;
 }
 
-function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; newTab: boolean; onClick: (hit: Hit, position: number) => void }) {
-  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, newTab: opts.newTab, onClick: opts.onClick })));
+function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; newTab: boolean; onClick: (hit: Hit, position: number) => void; actions?: CardActions }) {
+  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, newTab: opts.newTab, onClick: opts.onClick, actions: opts.actions })));
 }
 
 /** The results of the current page, as a grid of cards. */
@@ -60,7 +68,7 @@ export function hits(params: HitsParams): Widget {
     }
     if (status === 'loading') return;
     clear(list);
-    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick });
+    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, actions: cardActions(instance) });
     if (!rows.length) emptyHost.appendChild(emptyBlock(instance, ctx.state.q, params.templates?.empty));
   }, () => clear(root))(params);
 }
@@ -75,6 +83,8 @@ export function infiniteHits(params: InfiniteHitsParams): Widget {
   const more = button('sfas-more');
   let drawn = 0;
   let drawnFirst: Hit | undefined;
+  // What the cards were drawn with: a heart or a cart button that arrives later means drawing them again.
+  let drawnWith = '';
   return connectInfiniteHits<InfiniteHitsParams>(({ hits: rows, isFirstLoad, isLastPage, status, showMore, sendClick, instance }, first) => {
     const ctx = instance.context();
     if (first) {
@@ -91,9 +101,14 @@ export function infiniteHits(params: InfiniteHitsParams): Widget {
     if (status === 'loading') return;
     clear(emptyHost);
     // More of the same search is added under what is there; anything else starts the list again.
-    const appending = drawn > 0 && rows.length > drawn && rows[0] === drawnFirst;
+    const actions = cardActions(instance);
+    const withNow = `${instance.redraw}|${actions?.favourites ? 'f' : ''}|${actions?.cart ? 'c' : ''}`;
+    const appending = drawn > 0 && rows.length > drawn && rows[0] === drawnFirst && withNow === drawnWith;
+    // The same cards as are there, drawn the same way: left alone, so a size being chosen stays chosen.
+    if (drawn > 0 && rows.length === drawn && rows[0] === drawnFirst && withNow === drawnWith && list.children.length === drawn) { more.hidden = isLastPage || !rows.length; more.disabled = false; return; }
     if (!appending) { clear(list); drawn = 0; }
-    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick });
+    drawnWith = withNow;
+    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, actions });
     drawn = rows.length;
     drawnFirst = rows[0];
     more.hidden = isLastPage || !rows.length;
@@ -200,6 +215,47 @@ export function inStock(params: { container: Container; label?: string }): Widge
     input.checked = isRefined;
     text.textContent = params.label || words;
   }, () => clear(root))(params);
+}
+
+/**
+ * "Favourites (3)": shows only what the visitor saved with the heart. There
+ * while favourites are on for this search; nothing to tick until something is saved.
+ */
+export function favourites(params: { container: Container; label?: string }): Widget {
+  const root = resolveContainer(params.container, 'favourites');
+  const label = el('label', 'sfas-toggle sfas-toggle--fav');
+  const input = el('input');
+  input.type = 'checkbox';
+  const text = el('span');
+  const count = el('b', 'sfas-toggle-count');
+  label.append(input, icon('heart'), text, count);
+  let instance: AgenticSearch | null = null;
+  let off = () => {};
+  const draw = () => {
+    if (!instance) return;
+    const on = instance.favouritesEnabled();
+    root.hidden = !on;
+    if (!on) return;
+    const kept = instance.favourites.count();
+    input.checked = instance.favouritesOnly;
+    input.disabled = !kept && !instance.favouritesOnly;
+    label.classList.toggle('is-empty', input.disabled);
+    text.textContent = params.label || instance.strings.favourites;
+    count.textContent = kept ? String(kept) : '';
+  };
+  return {
+    $$type: 'sfas.favourites',
+    init(context) {
+      instance = context.instance;
+      clear(root);
+      root.appendChild(label);
+      input.addEventListener('change', () => instance?.setFavouritesOnly(input.checked));
+      off = instance.favourites.subscribe(draw);
+      draw();
+    },
+    render(context) { instance = context.instance; draw(); },
+    dispose() { off(); off = () => {}; instance = null; clear(root); },
+  };
 }
 
 /** What the search says when it loosened something to find anything. */

@@ -35,6 +35,8 @@ The prebuilt bundle mounts every element carrying `data-sf-agenticsearch` when t
      data-facets="brand,price"     <!-- optional override of the tool's filter list -->
      data-state="f.brand=Volvo&sort=price_asc"  <!-- optional: the search a landing page opens with -->
      data-placeholder="Search"     <!-- optional -->
+     data-favourites="true"        <!-- optional: a heart on every card, "Favourites" among the filters -->
+     data-cart="true"              <!-- optional: "Add to cart" on every card, once the page has given a cart (see below) -->
      data-api-base="https://dash.serviceform.com"> <!-- optional -->
   <!-- optional pre-rendered shell (see 3); replaced on mount -->
 </div>
@@ -43,6 +45,22 @@ The prebuilt bundle mounts every element carrying `data-sf-agenticsearch` when t
 ```
 
 - The inline settings `<script type="application/json">` is optional. When present for the tool id, no settings request is made before the first render; the SDK still revalidates in the background.
+- Favourites are kept in the visitor's browser (`localStorage`, one list per tool). Ticking "Favourites" shows the saved products without a request. Both `data-favourites` and `data-cart` fall back to the tool's settings `favourites` and `addToCart` (off by default).
+- "Add to cart" needs a cart to add to. The platform gives it one, before or after the bundle loads:
+
+  ```js
+  // before the bundle: picked up when it starts
+  window.ServiceformAgenticSearchCart = {
+    // optional: the product's variants; with more than one, the card lets the visitor choose
+    product: async (hit) => ({ variants: [{ id: '1', title: '42 / Black', available: true }] }),
+    // required: add to the shop's cart; reject with an Error to show its message
+    add: async (hit, variant, quantity) => {},
+  };
+  // or after it
+  ServiceformAgenticSearch.setCart({ add, product });
+  ```
+
+  The Shopify app ships this for Shopify themes.
 - Layouts: `box` (compact field with an instant dropdown, for a header), `modal` (a trigger that opens the full search over the page), `page` (full search page: field, filters, results, AI answer, URL state), `section` (the field with example questions under it, for a hero).
 
 ## 3. Pre-rendered shell (no layout shift)

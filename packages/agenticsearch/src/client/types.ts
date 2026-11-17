@@ -163,6 +163,10 @@ export interface SearchConfig {
   pagesCount: number;
   /** Where a result opens: a new tab (the default), or this one. */
   openInNewTab: boolean;
+  /** A heart on every card, and "Favourites" among the filters. Off unless the tool or the page turns it on. */
+  favourites: boolean;
+  /** "Add to cart" on every card, where the page has given the search a cart (`setCart`). */
+  addToCart: boolean;
   /** An extra button when nothing is found, clicking an element of the site's own (its chat bubble). */
   emptyButton: { label: string; selector: string } | null;
 }

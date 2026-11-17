@@ -73,6 +73,9 @@ export const ICONS = {
   filter: SVG('<path d="M4 6h16M7 12h10M10 18h4"/>'),
   arrow: SVG('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   trend: SVG('<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>'),
+  heart: SVG('<path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/>'),
+  cart: SVG('<path d="M6 7h13l-1.4 8.2a2 2 0 0 1-2 1.8H9.4a2 2 0 0 1-2-1.8L6 4H3.5"/><circle cx="9.5" cy="20" r="1"/><circle cx="16.5" cy="20" r="1"/>'),
+  check: SVG('<path d="M5 12.5l4.5 4.5L19 7.5"/>'),
 };
 
 export function icon(name: keyof typeof ICONS, className = 'sfas-icon'): HTMLSpanElement {

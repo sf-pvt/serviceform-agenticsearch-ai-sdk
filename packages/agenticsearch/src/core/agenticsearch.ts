@@ -1,6 +1,8 @@
 import { defaultConfig, normalizeConfig } from '../client/config';
 import { emptyState, isFiltered, normalizeState, sameSearch, stateToWire } from '../client/query';
 import type { BrowseOptions, BrowseResults, Hit, SearchClient, SearchConfig, SearchState, SortId } from '../client/types';
+import { getCart, onCart, type CartAdapter } from '../lib/cart';
+import { favouritesFor, type Favourites } from '../lib/favourites';
 import { stringsFor, type Strings } from '../lib/i18n';
 import { Router, type RoutingOptions } from './routing';
 import type { AiState, RenderContext, SearchStatus, Widget } from './types';
@@ -26,6 +28,10 @@ export interface AgenticSearchOptions {
   ai?: boolean;
   /** Open results in a new tab. Follows the tool's setting by default (on). */
   openInNewTab?: boolean;
+  /** A heart on every card and "Favourites" among the filters. Follows the tool's setting by default (off). */
+  favourites?: boolean;
+  /** "Add to cart" on every card, once the page has given the search a cart (`setCart`). Follows the tool's setting by default (off). */
+  cart?: boolean;
   /** Words to use instead of the built-in ones. */
   strings?: Partial<Strings>;
   /** Search as soon as `start()` is called. On by default. */
@@ -68,6 +74,8 @@ export class AgenticSearch {
   strings: Strings;
   ai: AiState = newAi();
   started = false;
+  /** Showing only what the visitor saved, in place of the catalogue. */
+  favouritesOnly = false;
 
   private options: AgenticSearchOptions;
   private widgets: Widget[] = [];
@@ -83,6 +91,7 @@ export class AgenticSearch {
   private lastRawAdopt: unknown = null;
   private lastFilters: Record<string, unknown> | null = null;
   private offConfig: () => void = () => {};
+  private offActions: Array<() => void> = [];
 
   constructor(options: AgenticSearchOptions) {
     if (!options || !options.searchClient) throw new Error('agenticsearch: searchClient is required');
@@ -128,6 +137,12 @@ export class AgenticSearch {
     const context = this.context();
     for (const widget of this.widgets) widget.init?.(context);
     this.offConfig = this.client.onConfig((config) => this.setConfig(config));
+    this.offActions = [
+      // A saved product taken off while only the saved ones are shown leaves the list.
+      this.favourites.subscribe(() => { if (this.favouritesOnly) this.search(); }),
+      // A cart given after the first cards were drawn: they are drawn again, with the button.
+      onCart(() => { this.redraw += 1; this.render(); }),
+    ];
     this.client.getConfig().then((config) => this.setConfig(config)).catch(() => {});
     if (this.options.searchOnStart !== false) this.search();
     else this.render();
@@ -140,6 +155,8 @@ export class AgenticSearch {
     this.widgets = [];
     this.router?.dispose();
     this.offConfig();
+    for (const off of this.offActions) off();
+    this.offActions = [];
     this.abort?.abort();
     if (this.trackTimer) clearTimeout(this.trackTimer);
     this.flushSearchEvent();
@@ -173,6 +190,8 @@ export class AgenticSearch {
   /** A new search from the words alone, as when Enter is pressed: filters read from older words go. */
   submit(query: string, how: { ask?: boolean } = {}): void {
     const q = String(query || '').trim();
+    // Words entered are for the catalogue, not for the handful that was saved.
+    this.favouritesOnly = false;
     this.setState({ ...emptyState(), q });
     const wantsAi = how.ask !== undefined ? how.ask : this.aiEnabled();
     if (wantsAi && q) this.ask(q);
@@ -217,6 +236,7 @@ export class AgenticSearch {
     if (key === 'sort') patch.sort = 'relevance';
     if (key === 'kind') patch.kind = '';
     if (key === 'in_stock') patch.inStock = false;
+    if (key === 'favourites') this.favouritesOnly = false;
     if (key.startsWith('q:')) {
       const words = ` ${s.q.split(/\s+/).join(' ')} `;
       const at = words.toLowerCase().indexOf(` ${key.slice(2).toLowerCase()} `);
@@ -227,11 +247,51 @@ export class AgenticSearch {
 
   /** Every filter off. The words stay unless `query` is true. */
   clearRefinements(how: { query?: boolean } = {}): void {
+    this.favouritesOnly = false;
     this.setState({ ...emptyState(), q: how.query ? '' : this.state.q, sort: this.state.sort });
   }
 
   /** Searches again with what is set. */
   refresh(): void { this.search(); }
+
+  /* ------------------------------------------------- favourites and cart -- */
+
+  /** Whether cards carry a heart: the option on this instance, else the tool's setting. */
+  favouritesEnabled(): boolean {
+    return this.options.favourites !== undefined ? this.options.favourites : this.config.favourites;
+  }
+
+  /** What this visitor saved, for this tool. */
+  get favourites(): Favourites { return favouritesFor(this.client.toolId); }
+
+  /** Shows only the saved products (as a search of their own, with no request), or the catalogue again. */
+  setFavouritesOnly(on: boolean): void {
+    if (this.favouritesOnly === !!on) return;
+    this.favouritesOnly = !!on;
+    this.state = { ...this.state, page: 1 };
+    this.emit('change');
+    this.search();
+  }
+
+  /** The cart "Add to cart" adds to, when this search shows the button and the page has given it one. */
+  cart(): CartAdapter | null {
+    const on = this.options.cart !== undefined ? this.options.cart : this.config.addToCart;
+    return on ? getCart() : null;
+  }
+
+  /** Goes up when cards must be drawn again though the results are the same. */
+  redraw = 0;
+
+  private savedResults(asked: SearchState): BrowseResults {
+    const words = asked.q.toLowerCase().split(/\s+/).filter(Boolean);
+    const kept = this.favourites.all();
+    const hits = words.length ? kept.filter((h) => { const text = `${h.title} ${h.meta || ''} ${h.brand || ''}`.toLowerCase(); return words.every((w) => text.includes(w)); }) : kept;
+    return {
+      query: asked.q, page: 1, perPage: Math.max(1, hits.length), found: hits.length, hasMore: false, sort: 'relevance', hits,
+      facets: [], ranges: [], available: [], priceCents: this.config.priceCents, mileageUnit: 'km', state: null, read: false,
+      chips: [{ key: 'favourites', label: this.strings.favourites }], note: '', dropped: '',
+    };
+  }
 
   /* -------------------------------------------------------------- search -- */
 
@@ -260,12 +320,22 @@ export class AgenticSearch {
     const seq = ++this.searchSeq;
     const asked = this.state;
     this.abort?.abort();
+    if (this.favouritesOnly) {
+      this.abort = null;
+      this.results = this.savedResults(asked);
+      this.status = 'idle';
+      this.error = null;
+      this.emit('results');
+      this.render();
+      return;
+    }
     this.abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
     this.client.browse(asked, { ...this.browseOptions(), signal: this.abort?.signal }).then((results) => {
       if (seq !== this.searchSeq) return;
       this.results = results;
       this.status = 'idle';
       this.error = null;
+      if (this.favouritesEnabled()) this.favourites.refresh(results.hits);
       // The server folds the words into filters ("red volvo under 30k" is
       // a colour, a price and the word volvo): its state is now the state.
       if (results.state && sameSearch(asked, this.state)) {

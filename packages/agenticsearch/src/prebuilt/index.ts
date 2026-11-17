@@ -39,6 +39,10 @@ export interface MountOptions {
   initialState?: Partial<SearchState> | string;
   /** Open results in a new tab. The tool's own setting (on) by default. */
   openInNewTab?: boolean;
+  /** A heart on every card and "Favourites" among the filters. The tool's own setting (off) by default. */
+  favourites?: boolean;
+  /** "Add to cart" on every card, once the page has called `setCart`. The tool's own setting (off) by default. */
+  cart?: boolean;
   testMode?: boolean;
 }
 
@@ -105,6 +109,8 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     language: options.language,
     ai: options.ai,
     openInNewTab: options.openInNewTab,
+    favourites: options.favourites,
+    cart: options.cart,
   });
 }
 
@@ -269,6 +275,8 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.routing) options.routing = d.routing !== 'false';
   if (d.state) options.initialState = d.state;
   if (d.newTab) options.openInNewTab = d.newTab !== 'false';
+  if (d.favourites) options.favourites = d.favourites !== 'false';
+  if (d.cart) options.cart = d.cart !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;
 }

@@ -17,7 +17,7 @@ export function defaultConfig(toolId: string): SearchConfig {
     ai: true, aiDisclaimer: '', placeholders: [], questions: [], labels: {}, showFilters: true, facets: [], facetStyles: {}, facetLabels: {},
     card: null, searchPageHref: '', searchPageParam: 'q', contactHref: '', assistantAvatar: '', fallbackImage: '',
     productSearch: true, pageSearch: true, popularSearches: false, pagesCount: 0,
-    openInNewTab: true, emptyButton: null,
+    openInNewTab: true, favourites: false, addToCart: false, emptyButton: null,
   };
 }
 
@@ -66,6 +66,8 @@ export function normalizeConfig(toolId: string, input: unknown): SearchConfig {
     popularSearches: c.popularSearches === true,
     pagesCount: Math.max(0, Number(c.pagesCount) || 0),
     openInNewTab: c.openInNewTab !== false,
+    favourites: c.favourites === true,
+    addToCart: c.addToCart === true,
     emptyButton: emptyButton(c),
   };
 }
