@@ -188,6 +188,12 @@ export interface ClientOptions {
   testMode?: boolean;
   /** A stable id for this visitor's session. Made up when left out. */
   sessionId?: string;
+  /**
+   * For a site in several languages whose search tool has a product index per
+   * language: the visitor's language ("fi"). Every request then asks for that
+   * language's index. Left out, the tool's own index answers, as always.
+   */
+  languageIndex?: string;
 }
 
 export interface SearchClient {

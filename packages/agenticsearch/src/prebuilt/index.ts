@@ -45,6 +45,8 @@ export interface MountOptions {
   cart?: boolean;
   /** Badges on cards from the product's tags: "Tag = Label" or "Tag = flag:fi", one per line or separated by ";". */
   badges?: string;
+  /** The tool has a product index per language: search the one in `language`. Off by default. */
+  languageIndexes?: boolean;
   testMode?: boolean;
 }
 
@@ -66,10 +68,11 @@ let shortcutOwner: HTMLElement | null = null;
 const SETTINGS_WAIT_MS = 1500;
 
 function clientFor(options: MountOptions): SearchClient {
-  const key = `${options.apiBase || ''}|${options.toolId}|${options.testMode ? 't' : ''}`;
+  const languageIndex = options.languageIndexes && options.language ? options.language : '';
+  const key = `${options.apiBase || ''}|${options.toolId}|${options.testMode ? 't' : ''}|${languageIndex}`;
   let client = clients.get(key);
   if (!client) {
-    client = serviceformSearch(options.toolId, { apiBase: options.apiBase, config: options.config, testMode: options.testMode });
+    client = serviceformSearch(options.toolId, { apiBase: options.apiBase, config: options.config, testMode: options.testMode, ...(languageIndex ? { languageIndex } : {}) });
     clients.set(key, client);
   }
   return client;
@@ -281,6 +284,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.favourites) options.favourites = d.favourites !== 'false';
   if (d.cart) options.cart = d.cart !== 'false';
   if (d.badges) options.badges = d.badges;
+  if (d.languageIndexes) options.languageIndexes = d.languageIndexes !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;
 }
