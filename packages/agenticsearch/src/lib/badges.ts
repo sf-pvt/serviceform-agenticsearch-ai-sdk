@@ -19,8 +19,8 @@ export const FLAGS = ['fi', 'se', 'no', 'dk'];
 
 /**
  * Rules from text, one per line (or separated by ";"):
- *   Merkintä:Outlet = Outlet
- *   Merkintä:Valmistettu Suomessa = flag:fi
+ *   Label:Outlet = Outlet
+ *   Label:Made in Finland = flag:fi
  *   Sale
  * A tag on its own is shown by its own words (what follows its last ":").
  */
