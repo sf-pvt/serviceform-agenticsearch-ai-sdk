@@ -61,6 +61,7 @@ export function browseFromWire(body: any, requestedPage = 1): BrowseResults {
     found: Number(b.found) || 0,
     hasMore: !!b.has_more,
     sort: b.sort || 'relevance',
+    ...(b.ranked === 'words' || b.ranked === 'meaning' ? { ranked: b.ranked } : {}),
     hits: hitsFromWire(b.products),
     facets: facetsFromWire(b.facets),
     ranges,

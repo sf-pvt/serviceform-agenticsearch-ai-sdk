@@ -156,6 +156,7 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
       if (opts.facets?.length) pairs.push(['facets', opts.facets.join(',')]);
       if (opts.language) pairs.push(['lang', opts.language]);
       if (opts.fields?.length) pairs.push(['fields', opts.fields.join(',')]);
+      if (opts.rank) pairs.push(['rank', opts.rank]);
       return browseFromWire(await getJson(`${apiBase}/api/public/omnibox/browse/${id}?${withSdk(encodePairs(withRoute(pairs)))}`, { signal: opts.signal }), s.page);
     },
 

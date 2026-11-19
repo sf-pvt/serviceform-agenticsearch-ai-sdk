@@ -52,6 +52,8 @@ type Listener = (context: RenderContext) => void;
 type StateInput = Partial<SearchState> | ((state: SearchState) => Partial<SearchState>);
 
 const SETTLED_MS = 1500;
+// How long after a shop answered by the words alone the same search is asked for in order of meaning.
+const SETTLE_MS = 600;
 /** In the address of a results page: show what the visitor saved. */
 export const FAVOURITES_PARAM = 'favourites';
 const newAi = (): AiState => ({ status: 'idle', question: '', answer: null, history: [] });
@@ -91,6 +93,10 @@ export class AgenticSearch {
   private pending = false;
   private abort: AbortController | null = null;
   private trackTimer: ReturnType<typeof setTimeout> | null = null;
+  // A shop answers typing at once, by the words; the order by meaning is asked for when the typing stops.
+  private typing = false;
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
+  private settleSeq = 0;
   private tracked = new Set<string>();
   private askedFor = '';
   private lastRawAdopt: unknown = null;
@@ -156,6 +162,7 @@ export class AgenticSearch {
   }
 
   dispose(): void {
+    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
     const context = this.context();
     for (const widget of this.widgets) widget.dispose?.(context);
     this.widgets = [];
@@ -191,7 +198,15 @@ export class AgenticSearch {
     else this.search();
   }
 
-  setQuery(query: string): void { this.setState({ q: query }); }
+  setQuery(query: string): void { this.typing = true; this.setState({ q: query }); }
+
+  /** The typing has stopped (the field was left): a shop's results are put in order of meaning now, not after the wait. */
+  settle(): void {
+    if (!this.settleTimer) return;
+    clearTimeout(this.settleTimer);
+    this.settleTimer = null;
+    if (this.settleSeq === this.searchSeq) this.runSearch('meaning');
+  }
 
   /** A new search from the words alone, as when Enter is pressed: filters read from older words go. */
   submit(query: string, how: { ask?: boolean } = {}): void {
@@ -352,10 +367,15 @@ export class AgenticSearch {
     Promise.resolve().then(() => this.runSearch());
   }
 
-  private runSearch(): void {
+  private runSearch(rank?: 'meaning'): void {
     this.pending = false;
     const seq = ++this.searchSeq;
     const asked = this.state;
+    const typing = this.typing;
+    this.typing = false;
+    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
+    // Once an answer has said this is a shop, everything but typing may wait for the order by meaning: Enter, a filter, the next page.
+    const settled = rank || (!typing && asked.q && this.results?.ranked ? 'meaning' : undefined);
     this.abort?.abort();
     if (this.favouritesOnly && this.favouritesEnabled()) {
       this.abort = null;
@@ -367,9 +387,14 @@ export class AgenticSearch {
       return;
     }
     this.abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    this.client.browse(asked, { ...this.browseOptions(), signal: this.abort?.signal }).then((results) => {
+    this.client.browse(asked, { ...this.browseOptions(), ...(settled ? { rank: settled } : {}), signal: this.abort?.signal }).then((results) => {
       if (seq !== this.searchSeq) return;
       this.results = results;
+      // Answered by the words alone: once more when the typing has stopped, straight away if nobody was typing.
+      if (results.ranked === 'words' && !settled) {
+        this.settleSeq = seq;
+        this.settleTimer = setTimeout(() => this.settle(), typing ? SETTLE_MS : 0);
+      }
       this.status = 'idle';
       this.error = null;
       if (this.favouritesEnabled()) this.favourites.refresh(results.hits);

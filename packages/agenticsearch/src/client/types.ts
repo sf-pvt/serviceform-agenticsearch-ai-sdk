@@ -60,6 +60,12 @@ export interface BrowseResults {
   found: number;
   hasMore: boolean;
   sort: SortId;
+  /**
+   * How a shop's results were put in order. 'words' means the order by meaning
+   * was not waited for: asking again with `rank: 'meaning'` gives it. Absent
+   * for anything that is not a shop's search for words.
+   */
+  ranked?: 'words' | 'meaning';
   hits: Hit[];
   facets: Facet[];
   /** Min and max of each numeric attribute in the result set, `price` included. */
@@ -126,6 +132,11 @@ export interface BrowseOptions {
   language?: string;
   /** Feed fields to return on each hit under `fields`. */
   fields?: string[];
+  /**
+   * 'meaning': a shop's results in order of meaning, which may wait a moment for
+   * the words to be understood. Left out, the answer never waits: see `ranked`.
+   */
+  rank?: 'meaning';
   signal?: AbortSignal;
 }
 

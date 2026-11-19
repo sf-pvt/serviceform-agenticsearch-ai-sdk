@@ -101,6 +101,8 @@ export function searchBox(params: SearchBoxParams): Widget {
         showHint();
         if (params.searchAsYouType !== false) later(input.value);
       });
+      // Leaving the field is stopping: a shop's results go into order of meaning now.
+      input.addEventListener('blur', () => instance.settle());
       form.addEventListener('submit', (event) => { event.preventDefault(); later.cancel(); submit(input.value); });
       hint.addEventListener('click', () => { later.cancel(); submit(input.value); });
       reset.addEventListener('click', () => { later.cancel(); input.value = ''; reset.hidden = true; clearAll(); input.focus(); });
