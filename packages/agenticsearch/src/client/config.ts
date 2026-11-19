@@ -1,6 +1,6 @@
 import type { SearchConfig } from './types';
 
-const LAYOUTS = ['section', 'box', 'page', 'modal'];
+const LAYOUTS = ['section', 'box', 'navmini', 'page', 'modal'];
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' && v ? v : fallback);
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.map((x) => String(x ?? '').trim()).filter(Boolean) : []);
 const record = (v: unknown): Record<string, string> => {

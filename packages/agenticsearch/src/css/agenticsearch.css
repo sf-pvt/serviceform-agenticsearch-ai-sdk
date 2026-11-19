@@ -353,6 +353,16 @@ html.sfas-lock { overflow: hidden; }
 
 /* ------------------------------------------------------------ the modal */
 .sfas .sfas-trigger, .sfas-shell-field { display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-radius); background: var(--sfas-surface); color: var(--sfas-muted); font-size: 14px; text-align: left; cursor: text; }
+/* Nav mini: only an icon in the navbar; the field and its results open in one panel under it. */
+.sfas--navmini { display: inline-block; width: auto; vertical-align: middle; }
+.sfas .sfas-mini-trigger { display: grid; place-items: center; width: 40px; height: 40px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.sfas .sfas-mini-trigger:hover { background: rgb(127 127 127 / 0.12); }
+.sfas .sfas-mini-trigger:focus-visible { outline: 2px solid var(--sfas-accent); outline-offset: 2px; }
+.sfas .sfas-mini-trigger .sfas-icon { width: 22px; height: 22px; }
+.sfas-mini-pop { position: fixed; z-index: 2147483000; box-sizing: border-box; padding: 8px; background: var(--sfas-surface, #fff); border: 1px solid var(--sfas-border); border-radius: calc(var(--sfas-r-m) + 4px); box-shadow: 0 18px 45px -18px rgb(0 0 0 / 0.35); }
+.sfas-mini-pop[hidden] { display: none; }
+/* The results are part of the panel, not a second box hanging under the field. */
+.sfas-mini-pop .sfas-panel { position: static; min-width: 0; margin-top: 8px; padding: 0; border: 0; border-radius: 0; box-shadow: none; max-height: min(70vh, 620px); }
 .sfas-trigger-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sfas .sfas-trigger-key { padding: 1px 6px; border: 1px solid var(--sfas-border); border-radius: 5px; font: inherit; font-size: 11px; }
 .sfas-modal { position: fixed; z-index: 2147483002; inset: 0; padding: 4vh 16px; overflow: auto; overscroll-behavior: contain; background: rgb(15 17 21 / 0.55); }
