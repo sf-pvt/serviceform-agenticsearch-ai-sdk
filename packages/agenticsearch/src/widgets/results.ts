@@ -10,8 +10,9 @@ export function cardActions(instance: AgenticSearch): CardActions | undefined {
   const favourites = instance.favouritesEnabled() ? instance.favourites : null;
   const cart = instance.cart();
   const badges = instance.badgeRules();
-  if (!favourites && !cart && !badges.length) return undefined;
-  return { strings: instance.strings, favourites, cart, badges };
+  const reviews = instance.reviewsEnabled();
+  if (!favourites && !cart && !badges.length && !reviews) return undefined;
+  return { strings: instance.strings, favourites, cart, badges, reviews };
 }
 
 export interface HitsParams {

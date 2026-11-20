@@ -42,6 +42,10 @@ export interface Hit {
   /** The price as a number in the index's own unit. */
   priceValue?: number;
   outOfStock: boolean;
+  /** The average review, 0 to 5, when the shop's reviews are in the feed. */
+  rating?: number;
+  /** How many reviews the rating is from. */
+  reviews?: number;
   /** The feed's own fields, when asked for by name with `fields`. */
   fields?: Record<string, unknown>;
 }

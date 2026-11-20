@@ -45,6 +45,8 @@ export interface MountOptions {
   cart?: boolean;
   /** Badges on cards from the product's tags: "Tag = Label" or "Tag = flag:fi", one per line or separated by ";". */
   badges?: string;
+  /** Stars and the number of reviews on cards, where the feed has them. On by default. */
+  reviews?: boolean;
   /** The tool has a product index per language: search the one in `language`. Off by default. */
   languageIndexes?: boolean;
   testMode?: boolean;
@@ -117,6 +119,7 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     favourites: options.favourites,
     cart: options.cart,
     badges: options.badges,
+    reviews: options.reviews,
   });
 }
 
@@ -369,6 +372,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.favourites) options.favourites = d.favourites !== 'false';
   if (d.cart) options.cart = d.cart !== 'false';
   if (d.badges) options.badges = d.badges;
+  if (d.reviews) options.reviews = d.reviews !== 'false';
   if (d.languageIndexes) options.languageIndexes = d.languageIndexes !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;

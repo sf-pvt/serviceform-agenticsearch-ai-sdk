@@ -36,6 +36,7 @@ The prebuilt bundle mounts every element carrying `data-sf-agenticsearch` when t
      data-state="f.brand=Volvo&sort=price_asc"  <!-- optional: the search a landing page opens with -->
      data-placeholder="Search"     <!-- optional -->
      data-favourites="true"        <!-- optional: a heart on every card, "Favourites" among the filters -->
+     data-reviews="false"          <!-- optional: no stars on cards (shown by default where the feed has ratings) -->
      data-cart="true"              <!-- optional: "Add to cart" on every card, once the page has given a cart (see below) -->
      data-api-base="https://dash.serviceform.com"> <!-- optional -->
   <!-- optional pre-rendered shell (see 3); replaced on mount -->

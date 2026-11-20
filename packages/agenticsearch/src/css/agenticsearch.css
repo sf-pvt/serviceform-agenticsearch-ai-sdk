@@ -153,6 +153,10 @@ html.sfas-lock { overflow: hidden; }
 .sfas-hit-body { display: flex; flex-direction: column; gap: 3px; padding: 12px; flex: 1; }
 .sfas-hit-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .sfas-hit-meta, .sfas-hit-location { font-size: 12.5px; color: var(--sfas-muted); }
+.sfas-hit-rating { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; line-height: 1; color: var(--sfas-muted); }
+.sfas-stars { position: relative; display: inline-block; letter-spacing: 0; color: var(--sfas-stars-off, #d9d9d9); }
+.sfas-stars::before, .sfas-stars-on::before { content: "\2605\2605\2605\2605\2605"; }
+.sfas-stars-on { position: absolute; inset: 0 auto 0 0; overflow: hidden; white-space: nowrap; color: var(--sfas-stars, #f5b400); }
 .sfas-hit-price { margin-top: auto; padding-top: 6px; font-weight: 700; font-size: 16px; color: var(--sfas-accent); }
 .sfas-hit-monthly { margin-left: 8px; font-weight: 500; font-size: 12.5px; color: var(--sfas-muted); }
 .sfas-hit--out .sfas-hit-image { opacity: 0.5; }

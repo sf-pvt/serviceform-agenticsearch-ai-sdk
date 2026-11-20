@@ -16,6 +16,8 @@ export interface CardActions {
   cart?: CartAdapter | null;
   /** Called after a product went into the cart. */
   onAdd?: (hit: Hit, position: number) => void;
+  /** Stars and the number of reviews, for products that have a rating. */
+  reviews?: boolean;
 }
 
 export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean; actions?: CardActions }
@@ -183,6 +185,27 @@ function cartRow(hit: Hit, position: number, actions: CardActions): HTMLElement 
   return row;
 }
 
+/** The stars of a rating (4.4 fills four and a half... of five) and the number of reviews beside them. */
+export function renderRating(rating: number, reviews?: number): HTMLElement {
+  const row = el('span', 'sfas-hit-rating');
+  const value = Math.round(Math.max(0, Math.min(5, rating)) * 10) / 10;
+  row.setAttribute('role', 'img');
+  row.setAttribute('aria-label', `${value} / 5${reviews ? ` (${reviews})` : ''}`);
+  row.title = `${value} / 5`;
+  const stars = el('span', 'sfas-stars');
+  stars.setAttribute('aria-hidden', 'true');
+  const filled = el('span', 'sfas-stars-on');
+  filled.style.width = `${Math.round(value * 20)}%`;
+  stars.appendChild(filled);
+  row.appendChild(stars);
+  if (reviews) {
+    const count = el('span', 'sfas-hit-reviews', `(${reviews})`);
+    count.setAttribute('aria-hidden', 'true');
+    row.appendChild(count);
+  }
+  return row;
+}
+
 /** One result as a card (or a row in a dropdown): picture, title, details, price, the whole of it a link. */
 export function renderCard(hit: Hit, position: number, options: CardOptions = {}): HTMLElement {
   const item = el('li', `sfas-hit${hit.outOfStock ? ' sfas-hit--out' : ''}${options.compact ? ' sfas-hit--row' : ''}`);
@@ -239,6 +262,7 @@ export function renderCard(hit: Hit, position: number, options: CardOptions = {}
   body.appendChild(el('span', 'sfas-hit-title', hit.year && !hit.title.includes(String(hit.year)) ? `${hit.title} ${hit.year}` : hit.title));
   if (hit.meta) body.appendChild(el('span', 'sfas-hit-meta', hit.meta));
   if (hit.location && !options.compact) body.appendChild(el('span', 'sfas-hit-location', hit.location));
+  if (!options.compact && options.actions?.reviews && hit.rating) body.appendChild(renderRating(hit.rating, hit.reviews));
   if (hit.price || hit.monthly) {
     const price = el('span', 'sfas-hit-price', hit.price);
     if (hit.monthly) price.appendChild(el('span', 'sfas-hit-monthly', hit.monthly));
