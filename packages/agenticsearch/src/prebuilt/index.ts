@@ -7,7 +7,7 @@ import { stringsFor } from '../lib/i18n';
 import css from '../css/agenticsearch.built.css';
 import { boxLayout, pageLayout, type Layout } from './layouts';
 
-export type LayoutName = 'box' | 'modal' | 'page' | 'section';
+export type LayoutName = 'box' | 'navmini' | 'modal' | 'page' | 'section';
 
 export interface MountOptions {
   toolId: string;
@@ -39,6 +39,16 @@ export interface MountOptions {
   initialState?: Partial<SearchState> | string;
   /** Open results in a new tab. The tool's own setting (on) by default. */
   openInNewTab?: boolean;
+  /** A heart on every card and "Favourites" among the filters. The tool's own setting (off) by default. */
+  favourites?: boolean;
+  /** "Add to cart" on every card, once the page has called `setCart`. The tool's own setting (off) by default. */
+  cart?: boolean;
+  /** Badges on cards from the product's tags: "Tag = Label" or "Tag = flag:fi", one per line or separated by ";". */
+  badges?: string;
+  /** Stars and the number of reviews on cards, where the feed has them. On by default. */
+  reviews?: boolean;
+  /** The tool has a product index per language: search the one in `language`. Off by default. */
+  languageIndexes?: boolean;
   testMode?: boolean;
 }
 
@@ -54,16 +64,17 @@ export interface Mounted {
 
 const clients = new Map<string, SearchClient>();
 const mounted = new WeakMap<HTMLElement, Mounted>();
-const LAYOUTS: LayoutName[] = ['box', 'modal', 'page', 'section'];
+const LAYOUTS: LayoutName[] = ['box', 'navmini', 'modal', 'page', 'section'];
 let shortcutOwner: HTMLElement | null = null;
 // How long a shell may wait for the settings before the search draws with defaults.
 const SETTINGS_WAIT_MS = 1500;
 
 function clientFor(options: MountOptions): SearchClient {
-  const key = `${options.apiBase || ''}|${options.toolId}|${options.testMode ? 't' : ''}`;
+  const languageIndex = options.languageIndexes && options.language ? options.language : '';
+  const key = `${options.apiBase || ''}|${options.toolId}|${options.testMode ? 't' : ''}|${languageIndex}`;
   let client = clients.get(key);
   if (!client) {
-    client = serviceformSearch(options.toolId, { apiBase: options.apiBase, config: options.config, testMode: options.testMode });
+    client = serviceformSearch(options.toolId, { apiBase: options.apiBase, config: options.config, testMode: options.testMode, ...(languageIndex ? { languageIndex } : {}) });
     clients.set(key, client);
   }
   return client;
@@ -105,6 +116,10 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     language: options.language,
     ai: options.ai,
     openInNewTab: options.openInNewTab,
+    favourites: options.favourites,
+    cart: options.cart,
+    badges: options.badges,
+    reviews: options.reviews,
   });
 }
 
@@ -185,6 +200,90 @@ function mountModal(element: HTMLElement, options: MountOptions): Mounted {
   };
 }
 
+// How wide the panel under a navbar icon is, and how far it keeps from the window's edges.
+const MINI_WIDTH = 680;
+const MINI_EDGE = 12;
+
+/**
+ * Nav mini: only a search icon where a navbar has no room for a field. A click on it opens a panel
+ * under it, the field at its top and focused, the instant results under the field in the same panel.
+ * A second click, a click elsewhere or Esc puts it away, and Esc hands the focus back to the icon.
+ */
+function mountMini(element: HTMLElement, options: MountOptions): Mounted {
+  const client = clientFor(options);
+  const config = client.peekConfig();
+  const s = stringsFor(options.language || config?.language, config?.labels as object);
+  const trigger = button('sfas-mini-trigger');
+  trigger.setAttribute('aria-label', s.search);
+  trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.appendChild(icon('search'));
+  element.appendChild(trigger);
+
+  let pop: HTMLElement | null = null;
+  let stop = () => {};
+  // Made on the first open: a page that never opens its search never pays for it.
+  const instance = newInstance(options, { routing: false, results: false });
+  const isOpen = () => !!pop && !pop.hidden;
+  // Under the icon, from its left edge; from its right edge where that would run off the window.
+  const place = () => {
+    if (!pop) return;
+    const at = trigger.getBoundingClientRect();
+    const width = Math.min(MINI_WIDTH, window.innerWidth - MINI_EDGE * 2);
+    let left = at.left;
+    if (left + width > window.innerWidth - MINI_EDGE) left = at.right - width;
+    pop.style.width = `${Math.round(width)}px`;
+    pop.style.left = `${Math.round(Math.max(MINI_EDGE, left))}px`;
+    pop.style.top = `${Math.round(at.bottom + 8)}px`;
+  };
+  const close = (focus = false) => {
+    if (!isOpen()) return;
+    pop!.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    if (focus) trigger.focus();
+  };
+  const open = (query?: string) => {
+    if (!pop) {
+      pop = el('div', 'sfas sfas-mini-pop');
+      pop.setAttribute('role', 'dialog');
+      pop.setAttribute('aria-label', s.search);
+      document.body.appendChild(pop);
+      const layout = boxLayout(pop, instance, { placeholder: options.placeholder, searchPageHref: options.searchPageHref, searchPageParam: options.searchPageParam, autofocus: true });
+      stop = start(pop, instance, layout, options);
+    }
+    pop.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+    place();
+    const input = pop.querySelector<HTMLInputElement>('.sfas-input');
+    if (input && query) { input.value = query; input.dispatchEvent(new Event('input', { bubbles: true })); }
+    input?.focus();
+  };
+  const onTrigger = () => (isOpen() ? close() : open());
+  const onPointer = (event: Event) => {
+    const target = event.target as Node | null;
+    if (isOpen() && target && !pop!.contains(target) && !element.contains(target)) close();
+  };
+  const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape' && isOpen()) close(true); };
+  const onMove = () => { if (isOpen()) place(); };
+  trigger.addEventListener('click', onTrigger);
+  document.addEventListener('pointerdown', onPointer, true);
+  document.addEventListener('keydown', onKey);
+  window.addEventListener('resize', onMove);
+  window.addEventListener('scroll', onMove, true);
+  return {
+    element, instance, layout: 'navmini', open, close: () => close(),
+    destroy() {
+      document.removeEventListener('pointerdown', onPointer, true);
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
+      stop();
+      pop?.remove();
+      trigger.remove();
+    },
+  };
+}
+
 /**
  * Draws a ready-made search in an element.
  *
@@ -226,6 +325,7 @@ export function mount(options: MountOptions): Mounted {
 
   let result: Mounted;
   if (layoutName === 'modal') result = mountModal(element, options);
+  else if (layoutName === 'navmini') result = mountMini(element, options);
   else {
     const isPage = layoutName === 'page';
     const instance = newInstance(options, { routing: isPage && options.routing !== false, results: isPage });
@@ -269,6 +369,11 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.routing) options.routing = d.routing !== 'false';
   if (d.state) options.initialState = d.state;
   if (d.newTab) options.openInNewTab = d.newTab !== 'false';
+  if (d.favourites) options.favourites = d.favourites !== 'false';
+  if (d.cart) options.cart = d.cart !== 'false';
+  if (d.badges) options.badges = d.badges;
+  if (d.reviews) options.reviews = d.reviews !== 'false';
+  if (d.languageIndexes) options.languageIndexes = d.languageIndexes !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;
 }

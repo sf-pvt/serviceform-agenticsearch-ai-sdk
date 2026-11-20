@@ -26,6 +26,28 @@ describe('serviceformSearch', () => {
     expect(() => serviceformSearch('../etc')).toThrow(/tool id/);
   });
 
+  it('asks for the index in the visitor\'s language only when told the tool has one per language', async () => {
+    const routes = { '/browse/': browseBody(), '/search/': { products: [] }, '/ask/': { answer: 'ok', products: [] } };
+    const plain = clientWith(routes);
+    await plain.client.browse({ q: 'muki' }, { language: 'fi' });
+    await plain.client.search('muki');
+    expect(plain.calls.map((c) => c.url).join(' ')).not.toContain('langIndex');
+
+    const routed = clientWith(routes, { languageIndex: 'fi-FI' });
+    await routed.client.browse({ q: 'muki' }, { language: 'en' });
+    await routed.client.search('muki');
+    await routed.client.ask('mikä muki?');
+    expect(decodeURIComponent(routed.calls[0].url)).toContain('lang=fi&langIndex=1');
+    expect(decodeURIComponent(routed.calls[0].url)).not.toContain('lang=en');
+    expect(decodeURIComponent(routed.calls[1].url)).toContain('q=muki&lang=fi&langIndex=1');
+    expect(JSON.parse(String(routed.calls[2].init?.body))).toMatchObject({ lang: 'fi', langIndex: true });
+
+    // Not a language: nothing is asked for.
+    const odd = clientWith(routes, { languageIndex: 'finnish' });
+    await odd.client.search('muki');
+    expect(odd.calls[0].url).not.toContain('langIndex');
+  });
+
   it('browses with the state as query parameters and maps the answer to readable names', async () => {
     const { client, calls } = clientWith({ '/browse/': browseBody({ chips: [{ k: 'brand', l: 'Volvo' }], note: 'Showing similar', read: true }) });
     const results = await client.browse({ q: 'volvo', filters: { brand: ['Volvo'] } }, { perPage: 12, facets: ['brand', 'price'] });

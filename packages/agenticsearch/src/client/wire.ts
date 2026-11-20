@@ -30,6 +30,8 @@ export function hitFromWire(row: any): Hit | null {
   if (row.loc) hit.location = text(row.loc);
   if (row.brand) hit.brand = text(row.brand);
   if (Number.isFinite(Number(row.pn)) && row.pn != null) hit.priceValue = Number(row.pn);
+  if (Number(row.rt) > 0) hit.rating = Math.min(5, Number(row.rt));
+  if (Number(row.rc) > 0) hit.reviews = Math.round(Number(row.rc));
   if (row.f && typeof row.f === 'object') hit.fields = row.f;
   return hit;
 }
@@ -61,6 +63,7 @@ export function browseFromWire(body: any, requestedPage = 1): BrowseResults {
     found: Number(b.found) || 0,
     hasMore: !!b.has_more,
     sort: b.sort || 'relevance',
+    ...(b.ranked === 'words' || b.ranked === 'meaning' ? { ranked: b.ranked } : {}),
     hits: hitsFromWire(b.products),
     facets: facetsFromWire(b.facets),
     ranges,

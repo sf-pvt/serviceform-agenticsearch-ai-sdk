@@ -68,6 +68,10 @@ html.sfas-lock { overflow: hidden; }
 .sfas-input-icon { color: var(--sfas-muted); }
 .sfas .sfas-input-face { display: block; flex: none; width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .sfas .sfas-input, .sfas .sfas-input:focus { flex: 1; min-width: 0; width: auto; max-width: none; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; outline: none; font-size: 15px; line-height: normal; box-shadow: none; -webkit-appearance: none; appearance: none; }
+/* A theme's own focus ring on fields (often a heavy outline on :focus-visible) does not belong inside
+   the search field: the field's frame shows the focus instead. */
+.sfas .sfas-searchbox input.sfas-input:focus, .sfas .sfas-searchbox input.sfas-input:focus-visible { outline: 0 !important; outline-offset: 0 !important; box-shadow: none !important; border: 0 !important; }
+.sfas .sfas-searchbox:focus-within { border-color: color-mix(in srgb, var(--sfas-text) 45%, transparent); }
 .sfas .sfas-input-go { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: var(--sfas-accent); color: #fff; }
 .sfas .sfas-input-go svg { width: 14px; height: 14px; stroke-width: 2.5; }
 .sfas .sfas-input-go:hover { filter: brightness(0.94); }
@@ -84,6 +88,12 @@ html.sfas-lock { overflow: hidden; }
 .sfas .sfas-input::placeholder { color: var(--sfas-muted); opacity: 1; }
 .sfas .sfas-input-clear { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; background: var(--sfas-soft); color: var(--sfas-muted); }
 .sfas .sfas-input-clear svg { width: 14px; height: 14px; }
+.sfas .sfas-input-fav { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 9px; border: 0; border-radius: var(--sfas-pill); background: var(--sfas-soft); color: var(--sfas-accent); font-size: 12.5px; cursor: pointer; flex: none; }
+.sfas .sfas-input-fav[hidden] { display: none; }
+.sfas .sfas-input-fav svg { width: 14px; height: 14px; fill: currentColor; }
+.sfas .sfas-input-fav b { font-weight: 700; color: var(--sfas-text); }
+.sfas .sfas-input-fav[aria-pressed="true"] { background: var(--sfas-accent); color: #fff; }
+.sfas .sfas-input-fav[aria-pressed="true"] b { color: #fff; }
 .sfas .sfas-searchbox.is-loading::after { content: ""; position: absolute; left: 16px; right: 16px; bottom: -1px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--sfas-accent), transparent); background-size: 40% 100%; background-repeat: no-repeat; animation: sfas-slide 1.1s linear infinite; }
 @keyframes sfas-slide { from { background-position: -40% 0; } to { background-position: 140% 0; } }
 
@@ -113,6 +123,11 @@ html.sfas-lock { overflow: hidden; }
   .sfas-panel-right { order: 1; padding-left: 0; border-left: 0; }
   .sfas-panel-grid:not(.sfas-panel-grid--single) .sfas-panel-left { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--sfas-border); }
 }
+/* Wider than its field (set by the widget when a header box has the screen to open into): two columns again. */
+.sfas-panel--wide .sfas-panel-grid:not(.sfas-panel-grid--single):not(.sfas-panel-grid--wide) { grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); }
+.sfas-panel--wide .sfas-panel-grid:not(.sfas-panel-grid--single):not(.sfas-panel-grid--wide) .sfas-panel-left { order: 0; margin-top: 0; padding-top: 0; padding-right: 8px; border-top: 0; }
+.sfas-panel--wide .sfas-panel-grid:not(.sfas-panel-grid--single):not(.sfas-panel-grid--wide) .sfas-panel-right { order: 0; padding-left: 8px; border-left: 1px solid var(--sfas-border); }
+.sfas .sfas-panel > .sfas-panel-ask { margin-bottom: 6px; }
 .sfas-panel-section + .sfas-panel-section, .sfas-panel-ask + .sfas-panel-section, .sfas-answer + .sfas-panel-section { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--sfas-border); }
 .sfas-panel-title { padding: 6px 8px 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--sfas-muted); }
 .sfas .sfas-panel-row, .sfas .sfas-panel-ask, .sfas .sfas-panel-all { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 8px; border: 0; border-radius: var(--sfas-r-s); background: none; text-align: left; font-size: 14px; }
@@ -138,9 +153,46 @@ html.sfas-lock { overflow: hidden; }
 .sfas-hit-body { display: flex; flex-direction: column; gap: 3px; padding: 12px; flex: 1; }
 .sfas-hit-title { font-weight: 600; font-size: 14px; overflow-wrap: anywhere; }
 .sfas-hit-meta, .sfas-hit-location { font-size: 12.5px; color: var(--sfas-muted); }
+.sfas-hit-rating { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; line-height: 1; color: var(--sfas-muted); }
+.sfas-stars { position: relative; display: inline-block; letter-spacing: 0; color: var(--sfas-stars-off, #d9d9d9); }
+.sfas-stars::before, .sfas-stars-on::before { content: "\2605\2605\2605\2605\2605"; }
+.sfas-stars-on { position: absolute; inset: 0 auto 0 0; overflow: hidden; white-space: nowrap; color: var(--sfas-stars, #f5b400); }
 .sfas-hit-price { margin-top: auto; padding-top: 6px; font-weight: 700; font-size: 16px; color: var(--sfas-accent); }
 .sfas-hit-monthly { margin-left: 8px; font-weight: 500; font-size: 12.5px; color: var(--sfas-muted); }
 .sfas-hit--out .sfas-hit-image { opacity: 0.5; }
+
+/* A card's own actions: the heart over the picture, "Add to cart" under the card. */
+.sfas-hit { position: relative; }
+.sfas .sfas-hit-fav { position: absolute; top: 8px; right: 8px; z-index: 1; display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / 0.92); color: var(--sfas-text); box-shadow: 0 1px 4px rgb(0 0 0 / 0.14); cursor: pointer; }
+.sfas .sfas-hit-fav:hover { color: var(--sfas-accent); }
+/* Badges from the product's tags, over the top left of the picture (the heart has the top right). */
+.sfas .sfas-hit-media { position: relative; }
+.sfas-hit-badges { position: absolute; top: 8px; left: 8px; right: 48px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; pointer-events: none; }
+.sfas-hit-badge { display: inline-block; padding: 3px 7px; border-radius: 4px; background: var(--sfas-text); color: var(--sfas-surface); font-size: 10.5px; font-weight: 700; line-height: 1.3; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+.sfas-hit-flag { display: inline-block; width: 24px; height: 16px; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.12); background-color: #fff; }
+/* Nordic crosses: a bar across and a bar down, over the flag's ground. */
+.sfas-hit-flag--fi { background: linear-gradient(#003580, #003580) 0 50% / 100% 26% no-repeat, linear-gradient(#003580, #003580) 30% 0 / 17% 100% no-repeat, #fff; }
+.sfas-hit-flag--se { background: linear-gradient(#fecc00, #fecc00) 0 50% / 100% 22% no-repeat, linear-gradient(#fecc00, #fecc00) 30% 0 / 14% 100% no-repeat, #006aa7; }
+.sfas-hit-flag--dk { background: linear-gradient(#fff, #fff) 0 50% / 100% 16% no-repeat, linear-gradient(#fff, #fff) 30% 0 / 11% 100% no-repeat, #c8102e; }
+.sfas-hit-flag--no { background: linear-gradient(#00205b, #00205b) 0 50% / 100% 12% no-repeat, linear-gradient(#00205b, #00205b) 31% 0 / 8% 100% no-repeat, linear-gradient(#fff, #fff) 0 50% / 100% 26% no-repeat, linear-gradient(#fff, #fff) 27.5% 0 / 17% 100% no-repeat, #ba0c2f; }
+.sfas .sfas-hit-fav[aria-pressed="true"] { color: var(--sfas-accent); }
+.sfas .sfas-hit-fav[aria-pressed="true"] svg { fill: currentColor; }
+.sfas-hit--buyable { display: flex; flex-direction: column; }
+.sfas .sfas-hit--buyable > a.sfas-hit-link, .sfas .sfas-hit--buyable > a.sfas-hit-link:hover { height: auto; flex: 1; }
+.sfas-hit-buy { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.sfas .sfas-hit-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 40px; padding: 0 14px; border: 1px solid var(--sfas-text); border-radius: var(--sfas-r-s); background: var(--sfas-surface); color: var(--sfas-text); font-weight: 600; font-size: 13.5px; cursor: pointer; }
+.sfas .sfas-hit-add:hover { background: var(--sfas-text); color: var(--sfas-surface); }
+.sfas .sfas-hit-add:disabled { opacity: 0.55; cursor: default; }
+.sfas .sfas-hit-add.is-busy { opacity: 0.7; cursor: progress; }
+.sfas .sfas-hit-add.is-done, .sfas .sfas-hit-add.is-done:hover { background: var(--sfas-text); color: var(--sfas-surface); opacity: 1; }
+.sfas .sfas-hit-add.is-error, .sfas .sfas-hit-add.is-error:hover { background: var(--sfas-surface); color: var(--sfas-text); border-style: dashed; opacity: 1; }
+.sfas-hit-options { display: flex; flex-direction: column; gap: 8px; }
+.sfas .sfas-hit-option { display: flex; flex-direction: column; gap: 4px; }
+.sfas-hit-option-name { font-size: 12px; font-weight: 600; color: var(--sfas-muted); }
+.sfas .sfas-hit-variant { width: 100%; height: 40px; padding: 0 34px 0 12px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background: var(--sfas-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center; color: var(--sfas-text); font-size: 13.5px; line-height: 1.2; -webkit-appearance: none; appearance: none; cursor: pointer; }
+.sfas .sfas-hit-variant:focus-visible { border-color: var(--sfas-text); outline: none; }
+.sfas-hit-option-price { font-weight: 700; font-size: 14px; color: var(--sfas-accent); }
+.sfas-hit-option-price[hidden] { display: none; }
 
 .sfas-hits--rows { display: block; }
 .sfas .sfas-hits--rows a.sfas-hit-link, .sfas .sfas-hits--rows a.sfas-hit-link:hover { flex-direction: row; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: var(--sfas-r-s); background: none; box-shadow: none; transform: none; }
@@ -150,6 +202,12 @@ html.sfas-lock { overflow: hidden; }
 .sfas-hits--rows .sfas-hit-meta { grid-column: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sfas-hits--rows .sfas-hit-price { grid-column: 2; grid-row: 1 / span 2; align-self: center; margin: 0; padding: 0; font-size: 13.5px; color: inherit; text-align: right; white-space: nowrap; }
 .sfas-hits--rows .sfas-hit-monthly { display: block; margin: 0; }
+/* A saved product in the dropdown: its heart at the end of the row takes it off the list. */
+.sfas-hits--rows .sfas-hit--saved { display: flex; align-items: center; gap: 4px; }
+.sfas-hits--rows .sfas-hit--saved > a.sfas-hit-link { flex: 1; min-width: 0; }
+.sfas .sfas-hit-unsave { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: var(--sfas-pill); background: none; color: var(--sfas-accent); cursor: pointer; }
+.sfas .sfas-hit-unsave:hover, .sfas .sfas-hit-unsave:focus-visible { background: var(--sfas-soft); }
+.sfas .sfas-hit-unsave svg { width: 16px; height: 16px; fill: currentColor; }
 
 .sfas-hit--ghost { border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-m); overflow: hidden; }
 .sfas-ghost-line { display: block; height: 12px; width: 100%; border-radius: 6px; background: var(--sfas-soft); }
@@ -179,6 +237,8 @@ html.sfas-lock { overflow: hidden; }
 .sfas .sfas-clear { padding: 6px 4px; border: 0; background: none; font-size: 12.5px; text-decoration: underline; color: var(--sfas-muted); }
 .sfas-stats { font-size: 13px; color: var(--sfas-muted); white-space: nowrap; }
 .sfas .sfas-sort, .sfas .sfas-facet-select { height: 38px; padding: 0 30px 0 12px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background: var(--sfas-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center; font-size: 13px; -webkit-appearance: none; appearance: none; max-width: 100%; }
+/* A theme's own line height on fields would sit the chosen value at the top of the box. */
+.sfas .sfas-sort, .sfas .sfas-facet-select { line-height: 36px !important; }
 .sfas .sfas-facet-select { width: 100%; }
 .sfas-pagination { display: flex; justify-content: center; gap: 6px; margin-top: 22px; }
 .sfas .sfas-page-number { min-width: 38px; height: 38px; padding: 0 10px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-r-s); background: var(--sfas-surface); }
@@ -251,6 +311,12 @@ html.sfas-lock { overflow: hidden; }
 .sfas-page-sortgroup { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
 .sfas .sfas-page-sortgroup .sfas-sort { display: block; width: 100%; }
 .sfas-page-stock { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
+.sfas-page-saved { padding: 12px 0; border-bottom: 1px solid var(--sfas-border); }
+.sfas-page-saved[hidden] { display: none; }
+.sfas .sfas-toggle--fav .sfas-icon { display: flex; color: var(--sfas-accent); }
+.sfas .sfas-toggle--fav .sfas-icon svg { width: 16px; height: 16px; }
+.sfas .sfas-toggle--fav.is-empty { color: var(--sfas-muted); cursor: default; }
+.sfas .sfas-toggle-count { margin-left: auto; font-weight: 600; font-size: 12.5px; color: var(--sfas-muted); }
 .sfas-side-clear { text-align: center; }
 .sfas .sfas-side-clear .sfas-clear { display: block; width: 100%; margin: 0 0 12px; padding: 8px 0 2px; font-size: 13px; font-weight: 600; color: var(--sfas-accent); text-decoration: none; }
 .sfas .sfas-side-clear .sfas-clear[hidden] { display: none; }
@@ -291,6 +357,16 @@ html.sfas-lock { overflow: hidden; }
 
 /* ------------------------------------------------------------ the modal */
 .sfas .sfas-trigger, .sfas-shell-field { display: flex; align-items: center; gap: 10px; width: 100%; height: 42px; padding: 0 12px; border: 1px solid var(--sfas-border); border-radius: var(--sfas-radius); background: var(--sfas-surface); color: var(--sfas-muted); font-size: 14px; text-align: left; cursor: text; }
+/* Nav mini: only an icon in the navbar; the field and its results open in one panel under it. */
+.sfas--navmini { display: inline-block; width: auto; vertical-align: middle; }
+.sfas .sfas-mini-trigger { display: grid; place-items: center; width: 40px; height: 40px; margin: 0; padding: 0; border: 0; border-radius: 50%; background: transparent; color: inherit; cursor: pointer; }
+.sfas .sfas-mini-trigger:hover { background: rgb(127 127 127 / 0.12); }
+.sfas .sfas-mini-trigger:focus-visible { outline: 2px solid var(--sfas-accent); outline-offset: 2px; }
+.sfas .sfas-mini-trigger .sfas-icon { width: 22px; height: 22px; }
+.sfas-mini-pop { position: fixed; z-index: 2147483000; box-sizing: border-box; padding: 8px; background: var(--sfas-surface, #fff); border: 1px solid var(--sfas-border); border-radius: calc(var(--sfas-r-m) + 4px); box-shadow: 0 18px 45px -18px rgb(0 0 0 / 0.35); }
+.sfas-mini-pop[hidden] { display: none; }
+/* The results are part of the panel, not a second box hanging under the field. */
+.sfas-mini-pop .sfas-panel { position: static; min-width: 0; margin-top: 8px; padding: 0; border: 0; border-radius: 0; box-shadow: none; max-height: min(70vh, 620px); }
 .sfas-trigger-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sfas .sfas-trigger-key { padding: 1px 6px; border: 1px solid var(--sfas-border); border-radius: 5px; font: inherit; font-size: 11px; }
 .sfas-modal { position: fixed; z-index: 2147483002; inset: 0; padding: 4vh 16px; overflow: auto; overscroll-behavior: contain; background: rgb(15 17 21 / 0.55); }

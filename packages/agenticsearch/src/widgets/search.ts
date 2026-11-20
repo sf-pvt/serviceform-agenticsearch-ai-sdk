@@ -1,8 +1,10 @@
 import { connectAutocomplete, connectSearchBox } from '../connectors';
 import type { Widget } from '../core/types';
 import { button, clear, debounce, el, icon, openWhere, resolveContainer, type Container } from '../lib/dom';
+import { favouriteId } from '../lib/favourites';
 import { keepForReturn, takeReturn } from '../lib/return';
 import { aiAnswer } from './ai';
+import { FAVOURITES_PARAM } from '../core/agenticsearch';
 import { renderCard } from './card';
 
 export interface SearchBoxParams {
@@ -99,6 +101,8 @@ export function searchBox(params: SearchBoxParams): Widget {
         showHint();
         if (params.searchAsYouType !== false) later(input.value);
       });
+      // Leaving the field is stopping: a shop's results go into order of meaning now.
+      input.addEventListener('blur', () => instance.settle());
       form.addEventListener('submit', (event) => { event.preventDefault(); later.cancel(); submit(input.value); });
       hint.addEventListener('click', () => { later.cancel(); submit(input.value); });
       reset.addEventListener('click', () => { later.cancel(); input.value = ''; reset.hidden = true; clearAll(); input.focus(); });
@@ -142,7 +146,38 @@ export function autocomplete(params: AutocompleteParams): Widget {
   const wrap = el('div', 'sfas-autocomplete');
   wrap.setAttribute('role', 'search');
   const { form, input, reset, showFace } = field(params.placeholder || '');
+  // The heart in the field, with how many are saved: opens them in the panel.
+  const saved = button('sfas-input-fav');
+  saved.append(icon('heart'), el('b'));
+  saved.hidden = true;
+  form.appendChild(saved);
+  let savedView = false;
+  let offSaved = () => {};
   const panel = el('div', 'sfas-panel');
+  // A field too narrow for two columns (a header box) on a screen that has
+  // the room: the panel opens wider than its field, from whichever edge of
+  // the field keeps it on the screen. On a phone it stays the field's width.
+  const WIDE_FIELD = 640;
+  const WIDE_PANEL = 720;
+  const placePanel = () => {
+    const view = typeof window !== 'undefined' ? window.innerWidth : 0;
+    const box = wrap.getBoundingClientRect();
+    const wide = box.width > 0 && box.width < WIDE_FIELD && view >= 760;
+    panel.classList.toggle('sfas-panel--wide', wide);
+    if (!wide) { panel.style.width = ''; panel.style.left = ''; panel.style.right = ''; return; }
+    const width = Math.min(WIDE_PANEL, view - 24);
+    panel.style.width = `${width}px`;
+    // Opens towards the middle of the screen: from the field's right edge when the field is on the
+    // right (a header), from its left edge otherwise. Either way it is pushed back in if it would leave the screen.
+    const onRight = box.left + box.width / 2 > view / 2;
+    if (onRight) {
+      panel.style.left = 'auto';
+      panel.style.right = `${Math.min(0, box.right - width - 12)}px`;
+    } else {
+      panel.style.right = 'auto';
+      panel.style.left = `${Math.min(0, view - 12 - (box.left + width))}px`;
+    }
+  };
   panel.hidden = true;
   const answerHost = el('div');
   const answer = aiAnswer({ container: answerHost, showHits: true });
@@ -187,8 +222,11 @@ export function autocomplete(params: AutocompleteParams): Widget {
       wrap.appendChild(panel);
       root.appendChild(wrap);
       answer.init?.(instance.context());
+      saved.addEventListener('click', () => { savedView = !(savedView && open); open = true; active = -1; redraw(); if (savedView) input.focus(); });
+      offSaved = instance.favourites.subscribe(() => redraw());
       input.addEventListener('input', () => {
         reset.hidden = !input.value;
+        savedView = false;
         open = true;
         active = -1;
         if (instance.ai.status !== 'idle') instance.resetConversation();
@@ -239,11 +277,57 @@ export function autocomplete(params: AutocompleteParams): Widget {
       return box;
     };
     const answering = aiOn && ai.status !== 'idle' && ai.status !== 'error';
+    // What the visitor saved: counted on the heart in the field, and listed in
+    // the panel when the heart is pressed or the field is focused with nothing typed.
+    const kept = instance.favouritesEnabled() ? instance.favourites.all() : [];
+    saved.hidden = !kept.length;
+    saved.lastElementChild!.textContent = kept.length ? String(kept.length) : '';
+    saved.setAttribute('aria-label', `${s.favourites} (${kept.length})`);
+    saved.title = s.favourites;
+    saved.setAttribute('aria-pressed', savedView && open ? 'true' : 'false');
+    if (!kept.length) savedView = false;
+    const listSaved = (column: HTMLElement) => {
+      const box = section(`${s.favourites} (${kept.length})`, column);
+      const list = el('ul', 'sfas-hits sfas-hits--rows');
+      kept.slice(0, 6).forEach((hit, i) => {
+        const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
+        row.querySelector('a')?.classList.add('sfas-option');
+        // Each saved product can be taken off the list here; the list stays open.
+        const off = button('sfas-hit-unsave');
+        off.appendChild(icon('heart'));
+        off.setAttribute('aria-label', `${s.favouriteRemove}: ${hit.title}`);
+        off.title = s.favouriteRemove;
+        off.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          if (!instance.favourites.has(hit)) return;
+          instance.favourites.toggle(hit);
+          // The heart on this product's cards elsewhere on the page goes out with it.
+          off.ownerDocument.querySelectorAll<HTMLElement>('.sfas-hit-fav').forEach((other) => {
+            if (other.dataset.sfasFav === favouriteId(hit)) other.setAttribute('aria-pressed', 'false');
+          });
+        });
+        row.classList.add('sfas-hit--saved');
+        row.appendChild(off);
+        list.appendChild(row);
+      });
+      box.appendChild(list);
+      if (pageHref) {
+        const all = el('a', 'sfas-panel-all sfas-option', `${s.showAll} (${kept.length})`);
+        all.href = `${pageHref}${pageHref.includes('?') ? '&' : '?'}${FAVOURITES_PARAM}=1`;
+        all.appendChild(icon('arrow'));
+        box.appendChild(all);
+      }
+    };
+    // "Ask AI" is a bar across the top of the panel, over both columns.
+    let askBar: HTMLElement | null = null;
     if (answering) {
       left.appendChild(answerHost);
       answer.render?.(instance.context());
     }
-    if (query) {
+    if (savedView && kept.length) {
+      listSaved(right);
+    } else if (query) {
       if (aiOn && !answering) {
         const ask = button('sfas-panel-ask sfas-option');
         ask.appendChild(icon('spark'));
@@ -253,7 +337,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
         ask.appendChild(words);
         ask.appendChild(el('kbd', 'sfas-panel-key', '↵', { 'aria-hidden': 'true' }));
         ask.addEventListener('click', () => { open = true; void instance.ask(query); });
-        left.appendChild(ask);
+        askBar = ask;
       }
       if (pages.length) {
         const box = section(s.pages, left);
@@ -304,7 +388,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
           box.appendChild(all);
         }
       }
-      if (!left.childNodes.length && !right.childNodes.length && status === 'idle') {
+      if (!askBar && !left.childNodes.length && !right.childNodes.length && status === 'idle') {
         left.appendChild(el('div', 'sfas-panel-empty', s.emptyFor.replace('{q}', `“${query}”`)));
       }
     } else if (!answering && params.showQuestions !== false && aiOn && config.questions.length) {
@@ -317,6 +401,9 @@ export function autocomplete(params: AutocompleteParams): Widget {
         box.appendChild(b);
       }
     }
+    // Nothing typed yet: what was saved is offered beside the example questions.
+    if (!query && !savedView && !answering && kept.length) listSaved(right);
+    if (askBar) panel.appendChild(askBar);
     if (left.childNodes.length || right.childNodes.length) {
       const grid = el('div', `sfas-panel-grid${right.childNodes.length ? '' : ' sfas-panel-grid--single'}${left.childNodes.length ? '' : ' sfas-panel-grid--wide'}`);
       if (left.childNodes.length) grid.appendChild(left);
@@ -325,11 +412,13 @@ export function autocomplete(params: AutocompleteParams): Widget {
     }
     const show = open && panel.childNodes.length > 0;
     panel.hidden = !show;
+    if (show) placePanel();
     input.setAttribute('aria-expanded', String(show));
     wrap.classList.toggle('is-open', show);
     if (active >= 0) setActive(Math.min(active, options().length - 1));
   }, () => {
     document.removeEventListener('pointerdown', onDocument);
+    offSaved();
     clear(root);
   })(params);
 }

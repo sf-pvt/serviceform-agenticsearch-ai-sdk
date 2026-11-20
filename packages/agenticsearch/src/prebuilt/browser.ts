@@ -12,6 +12,9 @@ import { mount, mountAll, optionsFromElement } from './index';
 const existing = (window as any).ServiceformAgenticSearch;
 const first = !existing || typeof existing.mountAll !== 'function';
 if (first) (window as any).ServiceformAgenticSearch = { ...library };
+// A cart the page set aside before this file arrived (a platform's own small
+// script, loaded first): `window.ServiceformAgenticSearchCart = { add, product }`.
+if (first && (window as any).ServiceformAgenticSearchCart) library.setCart((window as any).ServiceformAgenticSearchCart);
 
 // <script src=".../agenticsearch.js" data-tool-id="..." data-target=".header-search" data-layout="box">
 const script = document.currentScript as HTMLScriptElement | null;

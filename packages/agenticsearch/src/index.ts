@@ -7,3 +7,5 @@ export * from './connectors';
 export * from './widgets';
 export { mount, mountAll, get, ensureStyles, optionsFromElement, type MountOptions, type Mounted, type LayoutName } from './prebuilt';
 export { stringsFor, valueLabel, fieldLabel, type Strings } from './lib/i18n';
+export { setCart, getCart, type CartAdapter, type CartProduct, type CartVariant } from './lib/cart';
+export { favouritesFor, favouriteId, type Favourites } from './lib/favourites';
