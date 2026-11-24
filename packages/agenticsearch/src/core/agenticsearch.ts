@@ -41,6 +41,8 @@ export interface AgenticSearchOptions {
   details?: boolean;
   /** On sale: the old price struck through and the percent off. On by default. */
   sale?: boolean;
+  /** The shop's own badges on cards ("NEW!"), where the catalogue has them. On by default. */
+  shopBadges?: boolean;
   /** Words to use instead of the built-in ones. */
   strings?: Partial<Strings>;
   /** Search as soon as `start()` is called. On by default. */
@@ -310,6 +312,11 @@ export class AgenticSearch {
   /** Whether cards show a sale (old price, percent off): on unless the page said not. */
   saleEnabled(): boolean {
     return this.options.sale !== false;
+  }
+
+  /** Whether cards show the shop's own badge: on unless the page said not. */
+  shopBadgesEnabled(): boolean {
+    return this.options.shopBadges !== false;
   }
 
   /** Whether cards carry a heart: the option on this instance, else the tool's setting. */

@@ -20,7 +20,7 @@ export interface CardActions {
   reviews?: boolean;
 }
 
-export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean; /** false: no line under the name (brand · category). */ details?: boolean; /** false: no old price or percent off. */ sale?: boolean; actions?: CardActions }
+export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean; /** false: no line under the name (brand · category). */ details?: boolean; /** false: no old price or percent off. */ sale?: boolean; /** false: no shop's own badge. */ shopBadge?: boolean; actions?: CardActions }
 
 const ADDED_MS = 2000;
 const ERROR_MS = 3500;
@@ -243,8 +243,10 @@ export function renderCard(hit: Hit, position: number, options: CardOptions = {}
   // Badges from the product's tags, over the corner of the picture, and how much off when it is on sale.
   const badges = options.compact || !options.actions?.badges ? [] : badgesFor(hit, options.actions.badges);
   const off = !options.compact && options.sale !== false && hit.oldPrice && hit.discount ? hit.discount : 0;
-  if (badges.length || off) {
+  const own = !options.compact && options.shopBadge !== false && hit.shopBadge ? hit.shopBadge : '';
+  if (badges.length || off || own) {
     const row = el('span', 'sfas-hit-badges');
+    if (own) row.appendChild(el('span', 'sfas-hit-badge sfas-hit-badge--shop', own));
     if (off) row.appendChild(el('span', 'sfas-hit-badge sfas-hit-badge--sale', `-${off}%`));
     for (const badge of badges) {
       if (badge.flag) {

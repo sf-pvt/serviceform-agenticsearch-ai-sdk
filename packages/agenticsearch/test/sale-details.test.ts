@@ -31,3 +31,15 @@ describe('sale switched off', () => {
     expect(card.querySelector('.sfas-hit-badge--sale')).toBeNull();
   });
 });
+
+describe("the shop's own badge", () => {
+  const own = { ...row, bd: '💫 NEW!' };
+  it('shows it on the picture, before the percent off', () => {
+    const card = renderCard(hitFromWire(own)!, 0, {});
+    const badges = [...card.querySelectorAll('.sfas-hit-badge')].map((b) => b.textContent);
+    expect(badges).toEqual(['💫 NEW!', '-50%']);
+  });
+  it('can be switched off', () => {
+    expect(renderCard(hitFromWire(own)!, 0, { shopBadge: false }).querySelector('.sfas-hit-badge--shop')).toBeNull();
+  });
+});

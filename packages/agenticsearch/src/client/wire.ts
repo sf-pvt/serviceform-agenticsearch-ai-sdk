@@ -33,6 +33,7 @@ export function hitFromWire(row: any): Hit | null {
   if (Number(row.rt) > 0) hit.rating = Math.min(5, Number(row.rt));
   if (Number(row.rc) > 0) hit.reviews = Math.round(Number(row.rc));
   if (row.op) hit.oldPrice = text(row.op);
+  if (row.bd) hit.shopBadge = text(row.bd).slice(0, 40);
   if (Number(row.off) > 0) hit.discount = Math.min(99, Math.round(Number(row.off)));
   if (row.f && typeof row.f === 'object') hit.fields = row.f;
   return hit;

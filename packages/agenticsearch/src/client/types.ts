@@ -50,6 +50,8 @@ export interface Hit {
   oldPrice?: string;
   /** On sale: how much off, in whole percent. */
   discount?: number;
+  /** The shop's own badge for the product ("NEW!"). */
+  shopBadge?: string;
   /** The feed's own fields, when asked for by name with `fields`. */
   fields?: Record<string, unknown>;
 }

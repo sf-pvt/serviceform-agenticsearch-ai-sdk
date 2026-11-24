@@ -51,6 +51,8 @@ export interface MountOptions {
   details?: boolean;
   /** On sale: the old price struck through and the percent off. On by default. */
   sale?: boolean;
+  /** The shop's own badges on cards ("NEW!"). On by default. */
+  shopBadges?: boolean;
   /** The tool has a product index per language: search the one in `language`. Off by default. */
   languageIndexes?: boolean;
   testMode?: boolean;
@@ -126,6 +128,7 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     reviews: options.reviews,
     details: options.details,
     sale: options.sale,
+    shopBadges: options.shopBadges,
   });
 }
 
@@ -381,6 +384,7 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.reviews) options.reviews = d.reviews !== 'false';
   if (d.details) options.details = d.details !== 'false';
   if (d.sale) options.sale = d.sale !== 'false';
+  if (d.shopBadges) options.shopBadges = d.shopBadges !== 'false';
   if (d.languageIndexes) options.languageIndexes = d.languageIndexes !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;
