@@ -46,6 +46,10 @@ export interface Hit {
   rating?: number;
   /** How many reviews the rating is from. */
   reviews?: number;
+  /** On sale: the regular price as text, shown struck through beside `price`. */
+  oldPrice?: string;
+  /** On sale: how much off, in whole percent. */
+  discount?: number;
   /** The feed's own fields, when asked for by name with `fields`. */
   fields?: Record<string, unknown>;
 }

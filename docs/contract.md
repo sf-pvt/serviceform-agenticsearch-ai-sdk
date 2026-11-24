@@ -37,6 +37,8 @@ The prebuilt bundle mounts every element carrying `data-sf-agenticsearch` when t
      data-placeholder="Search"     <!-- optional -->
      data-favourites="true"        <!-- optional: a heart on every card, "Favourites" among the filters -->
      data-reviews="false"          <!-- optional: no stars on cards (shown by default where the feed has ratings) -->
+     data-details="false"          <!-- optional: no brand · category line under the card name (shown by default) -->
+     data-sale="false"             <!-- optional: no struck-through old price or percent off (shown by default) -->
      data-cart="true"              <!-- optional: "Add to cart" on every card, once the page has given a cart (see below) -->
      data-api-base="https://dash.serviceform.com"> <!-- optional -->
   <!-- optional pre-rendered shell (see 3); replaced on mount -->

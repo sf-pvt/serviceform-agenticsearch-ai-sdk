@@ -37,6 +37,10 @@ export interface AgenticSearchOptions {
   cart?: boolean;
   /** Stars and the number of reviews on cards, for products the feed has a rating for. On by default. */
   reviews?: boolean;
+  /** The line under a card's name (brand · category). On by default. */
+  details?: boolean;
+  /** On sale: the old price struck through and the percent off. On by default. */
+  sale?: boolean;
   /** Words to use instead of the built-in ones. */
   strings?: Partial<Strings>;
   /** Search as soon as `start()` is called. On by default. */
@@ -296,6 +300,16 @@ export class AgenticSearch {
   /** Whether cards show a product's stars: on unless the page said not. */
   reviewsEnabled(): boolean {
     return this.options.reviews !== false;
+  }
+
+  /** Whether cards show the line under the name (brand · category): on unless the page said not. */
+  detailsEnabled(): boolean {
+    return this.options.details !== false;
+  }
+
+  /** Whether cards show a sale (old price, percent off): on unless the page said not. */
+  saleEnabled(): boolean {
+    return this.options.sale !== false;
   }
 
   /** Whether cards carry a heart: the option on this instance, else the tool's setting. */

@@ -53,7 +53,7 @@ export function aiAnswer(params: AiAnswerParams): Widget {
     root.appendChild(body);
     if (params.showHits && status === 'done' && hits.length) {
       const list = el('ul', 'sfas-hits sfas-hits--rows');
-      hits.forEach((hit, i) => list.appendChild(renderCard(hit, i, { compact: true, fallbackImage: instance.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: (h, p) => instance.sendClick(h, p, question) })));
+      hits.forEach((hit, i) => list.appendChild(renderCard(hit, i, { compact: true, details: instance.detailsEnabled(), sale: instance.saleEnabled(), fallbackImage: instance.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: (h, p) => instance.sendClick(h, p, question) })));
       root.appendChild(list);
     }
   }, () => clear(root))(params);

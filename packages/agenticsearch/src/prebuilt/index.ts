@@ -47,6 +47,10 @@ export interface MountOptions {
   badges?: string;
   /** Stars and the number of reviews on cards, where the feed has them. On by default. */
   reviews?: boolean;
+  /** The line under a card's name (brand · category). On by default. */
+  details?: boolean;
+  /** On sale: the old price struck through and the percent off. On by default. */
+  sale?: boolean;
   /** The tool has a product index per language: search the one in `language`. Off by default. */
   languageIndexes?: boolean;
   testMode?: boolean;
@@ -120,6 +124,8 @@ function newInstance(options: MountOptions, extra: { routing?: boolean; results?
     cart: options.cart,
     badges: options.badges,
     reviews: options.reviews,
+    details: options.details,
+    sale: options.sale,
   });
 }
 
@@ -373,6 +379,8 @@ export function optionsFromElement(element: HTMLElement): MountOptions | null {
   if (d.cart) options.cart = d.cart !== 'false';
   if (d.badges) options.badges = d.badges;
   if (d.reviews) options.reviews = d.reviews !== 'false';
+  if (d.details) options.details = d.details !== 'false';
+  if (d.sale) options.sale = d.sale !== 'false';
   if (d.languageIndexes) options.languageIndexes = d.languageIndexes !== 'false';
   if (d.test === 'true') options.testMode = true;
   return options;

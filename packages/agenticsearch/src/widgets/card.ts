@@ -20,7 +20,7 @@ export interface CardActions {
   reviews?: boolean;
 }
 
-export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean; actions?: CardActions }
+export interface CardOptions { fallbackImage?: string; template?: HitTemplate; onClick?: (hit: Hit, position: number) => void; compact?: boolean; /** The link opens in a new tab. */ newTab?: boolean; /** false: no line under the name (brand · category). */ details?: boolean; /** false: no old price or percent off. */ sale?: boolean; actions?: CardActions }
 
 const ADDED_MS = 2000;
 const ERROR_MS = 3500;
@@ -240,10 +240,12 @@ export function renderCard(hit: Hit, position: number, options: CardOptions = {}
     });
     media.appendChild(img);
   }
-  // Badges from the product's tags, over the corner of the picture.
+  // Badges from the product's tags, over the corner of the picture, and how much off when it is on sale.
   const badges = options.compact || !options.actions?.badges ? [] : badgesFor(hit, options.actions.badges);
-  if (badges.length) {
+  const off = !options.compact && options.sale !== false && hit.oldPrice && hit.discount ? hit.discount : 0;
+  if (badges.length || off) {
     const row = el('span', 'sfas-hit-badges');
+    if (off) row.appendChild(el('span', 'sfas-hit-badge sfas-hit-badge--sale', `-${off}%`));
     for (const badge of badges) {
       if (badge.flag) {
         const flag = el('span', `sfas-hit-flag sfas-hit-flag--${badge.flag}`);
@@ -260,11 +262,13 @@ export function renderCard(hit: Hit, position: number, options: CardOptions = {}
   link.appendChild(media);
   const body = el('span', 'sfas-hit-body');
   body.appendChild(el('span', 'sfas-hit-title', hit.year && !hit.title.includes(String(hit.year)) ? `${hit.title} ${hit.year}` : hit.title));
-  if (hit.meta) body.appendChild(el('span', 'sfas-hit-meta', hit.meta));
+  if (hit.meta && options.details !== false) body.appendChild(el('span', 'sfas-hit-meta', hit.meta));
   if (hit.location && !options.compact) body.appendChild(el('span', 'sfas-hit-location', hit.location));
   if (!options.compact && options.actions?.reviews && hit.rating) body.appendChild(renderRating(hit.rating, hit.reviews));
   if (hit.price || hit.monthly) {
-    const price = el('span', 'sfas-hit-price', hit.price);
+    const was = options.sale !== false ? hit.oldPrice : '';
+    const price = el('span', `sfas-hit-price${was ? ' sfas-hit-price--sale' : ''}`, hit.price);
+    if (was) price.appendChild(el('s', 'sfas-hit-was', was));
     if (hit.monthly) price.appendChild(el('span', 'sfas-hit-monthly', hit.monthly));
     body.appendChild(price);
   }

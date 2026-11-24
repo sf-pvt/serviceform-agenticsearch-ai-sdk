@@ -50,8 +50,8 @@ function emptyBlock(instance: AgenticSearch, query: string, template?: (query: s
   return empty;
 }
 
-function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; newTab: boolean; onClick: (hit: Hit, position: number) => void; actions?: CardActions }) {
-  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, newTab: opts.newTab, onClick: opts.onClick, actions: opts.actions })));
+function drawHits(list: HTMLElement, hits: Hit[], from: number, opts: { template?: HitTemplate; fallbackImage: string; newTab: boolean; onClick: (hit: Hit, position: number) => void; details?: boolean; sale?: boolean; actions?: CardActions }) {
+  hits.forEach((hit, i) => list.appendChild(renderCard(hit, from + i, { template: opts.template, fallbackImage: opts.fallbackImage, newTab: opts.newTab, onClick: opts.onClick, details: opts.details, sale: opts.sale, actions: opts.actions })));
 }
 
 /** The results of the current page, as a grid of cards. */
@@ -70,7 +70,7 @@ export function hits(params: HitsParams): Widget {
     }
     if (status === 'loading') return;
     clear(list);
-    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, actions: cardActions(instance) });
+    drawHits(list, rows, 0, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, details: instance.detailsEnabled(), sale: instance.saleEnabled(), actions: cardActions(instance) });
     if (!rows.length) emptyHost.appendChild(emptyBlock(instance, ctx.state.q, params.templates?.empty));
   }, () => clear(root))(params);
 }
@@ -110,7 +110,7 @@ export function infiniteHits(params: InfiniteHitsParams): Widget {
     if (drawn > 0 && rows.length === drawn && rows[0] === drawnFirst && withNow === drawnWith && list.children.length === drawn) { more.hidden = isLastPage || !rows.length; more.disabled = false; return; }
     if (!appending) { clear(list); drawn = 0; }
     drawnWith = withNow;
-    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, actions });
+    drawHits(list, rows.slice(drawn), drawn, { template: params.templates?.item, fallbackImage: ctx.config.fallbackImage, newTab: instance.opensInNewTab(), onClick: sendClick, details: instance.detailsEnabled(), sale: instance.saleEnabled(), actions });
     drawn = rows.length;
     drawnFirst = rows[0];
     more.hidden = isLastPage || !rows.length;

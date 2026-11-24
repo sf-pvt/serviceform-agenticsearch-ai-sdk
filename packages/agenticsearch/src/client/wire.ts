@@ -32,6 +32,8 @@ export function hitFromWire(row: any): Hit | null {
   if (Number.isFinite(Number(row.pn)) && row.pn != null) hit.priceValue = Number(row.pn);
   if (Number(row.rt) > 0) hit.rating = Math.min(5, Number(row.rt));
   if (Number(row.rc) > 0) hit.reviews = Math.round(Number(row.rc));
+  if (row.op) hit.oldPrice = text(row.op);
+  if (Number(row.off) > 0) hit.discount = Math.min(99, Math.round(Number(row.off)));
   if (row.f && typeof row.f === 'object') hit.fields = row.f;
   return hit;
 }

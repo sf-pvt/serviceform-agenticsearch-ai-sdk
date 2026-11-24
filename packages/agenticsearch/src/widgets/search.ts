@@ -290,7 +290,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
       const box = section(`${s.favourites} (${kept.length})`, column);
       const list = el('ul', 'sfas-hits sfas-hits--rows');
       kept.slice(0, 6).forEach((hit, i) => {
-        const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
+        const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick, details: instance.detailsEnabled(), sale: instance.saleEnabled() });
         row.querySelector('a')?.classList.add('sfas-option');
         // Each saved product can be taken off the list here; the list stays open.
         const off = button('sfas-hit-unsave');
@@ -375,7 +375,7 @@ export function autocomplete(params: AutocompleteParams): Widget {
         const box = section(s.products, right);
         const list = el('ul', 'sfas-hits sfas-hits--rows');
         hits.forEach((hit, i) => {
-          const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick });
+          const row = renderCard(hit, i, { compact: true, fallbackImage: config.fallbackImage, newTab, onClick: sendClick, details: instance.detailsEnabled(), sale: instance.saleEnabled() });
           row.querySelector('a')?.classList.add('sfas-option');
           list.appendChild(row);
         });
