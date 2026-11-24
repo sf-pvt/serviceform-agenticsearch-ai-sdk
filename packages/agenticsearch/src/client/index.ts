@@ -75,6 +75,14 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
     if (!res.ok) throw new AgenticSearchError(`Request failed: ${res.status}`, res.status);
     return res.json();
   };
+  // A site with an index per language asks for the visitor's (see ClientOptions.languageIndex).
+  const routeLanguage = /^[a-z]{2}([-_][a-z0-9]+)*$/i.test(String(options.languageIndex || '')) ? String(options.languageIndex).slice(0, 2).toLowerCase() : '';
+  const withRoute = (pairs: Array<[string, string]>): Array<[string, string]> => {
+    if (!routeLanguage) return pairs;
+    const out = pairs.filter(([key]) => key !== 'lang' && key !== 'langIndex');
+    out.push(['lang', routeLanguage], ['langIndex', '1']);
+    return out;
+  };
   const withSdk = (qs: string) => `${qs ? `${qs}&` : ''}sdk=${encodeURIComponent(SDK_TAG)}`;
 
   let legacyRequest: Promise<any> | null = null;
@@ -137,7 +145,7 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
     async search(query, opts = {}) {
       const q = String(query || '').trim().slice(0, 120);
       if (!q) return instantFromWire({}, '');
-      const qs = withSdk(encodePairs([['q', q], ...(opts.limit ? ([['limit', String(opts.limit)]] as Array<[string, string]>) : [])]));
+      const qs = withSdk(encodePairs(withRoute([['q', q], ...(opts.limit ? ([['limit', String(opts.limit)]] as Array<[string, string]>) : [])])));
       return instantFromWire(await getJson(`${apiBase}/api/public/omnibox/search/${id}?${qs}`, { signal: opts.signal }), q);
     },
 
@@ -148,7 +156,8 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
       if (opts.facets?.length) pairs.push(['facets', opts.facets.join(',')]);
       if (opts.language) pairs.push(['lang', opts.language]);
       if (opts.fields?.length) pairs.push(['fields', opts.fields.join(',')]);
-      return browseFromWire(await getJson(`${apiBase}/api/public/omnibox/browse/${id}?${withSdk(encodePairs(pairs))}`, { signal: opts.signal }), s.page);
+      if (opts.rank) pairs.push(['rank', opts.rank]);
+      return browseFromWire(await getJson(`${apiBase}/api/public/omnibox/browse/${id}?${withSdk(encodePairs(withRoute(pairs)))}`, { signal: opts.signal }), s.page);
     },
 
     async ask(question, opts: AskOptions = {}) {
@@ -160,6 +169,7 @@ export function serviceformSearch(toolId: string, options: ClientOptions = {}): 
       if (opts.previousFilters) body.previousFilters = opts.previousFilters;
       if (opts.shown) body.shown = opts.shown;
       if (options.testMode) body.testMode = true;
+      if (routeLanguage) { body.lang = routeLanguage; body.langIndex = true; }
       body.pageUrl = opts.pageUrl || (typeof window !== 'undefined' && window.location ? window.location.origin + window.location.pathname : '');
       return answerFromWire(await getJson(`${apiBase}/api/public/omnibox/ask/${id}`, {
         method: 'POST',

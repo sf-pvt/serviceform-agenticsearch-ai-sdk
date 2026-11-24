@@ -1,6 +1,9 @@
+import { BADGE_FIELD, parseBadges, type BadgeRule } from '../lib/badges';
 import { defaultConfig, normalizeConfig } from '../client/config';
 import { emptyState, isFiltered, normalizeState, sameSearch, stateToWire } from '../client/query';
 import type { BrowseOptions, BrowseResults, Hit, SearchClient, SearchConfig, SearchState, SortId } from '../client/types';
+import { getCart, onCart, type CartAdapter } from '../lib/cart';
+import { favouritesFor, type Favourites } from '../lib/favourites';
 import { stringsFor, type Strings } from '../lib/i18n';
 import { Router, type RoutingOptions } from './routing';
 import type { AiState, RenderContext, SearchStatus, Widget } from './types';
@@ -20,12 +23,26 @@ export interface AgenticSearchOptions {
   facets?: string[];
   /** Feed fields to return on every hit under `fields`. */
   fields?: string[];
+  /** Badges on cards from the product's tags: rules as text ("Tag = Label", one per line) or a list. */
+  badges?: string | BadgeRule[];
   /** Overrides the tool's language for labels and formatting. */
   language?: string;
   /** Ask the AI when a search is submitted (Enter). Follows the tool's setting by default. */
   ai?: boolean;
   /** Open results in a new tab. Follows the tool's setting by default (on). */
   openInNewTab?: boolean;
+  /** A heart on every card and "Favourites" among the filters. Follows the tool's setting by default (off). */
+  favourites?: boolean;
+  /** "Add to cart" on every card, once the page has given the search a cart (`setCart`). Follows the tool's setting by default (off). */
+  cart?: boolean;
+  /** Stars and the number of reviews on cards, for products the feed has a rating for. On by default. */
+  reviews?: boolean;
+  /** The line under a card's name (brand · category). On by default. */
+  details?: boolean;
+  /** On sale: the old price struck through and the percent off. On by default. */
+  sale?: boolean;
+  /** The shop's own badges on cards ("NEW!"), where the catalogue has them. On by default. */
+  shopBadges?: boolean;
   /** Words to use instead of the built-in ones. */
   strings?: Partial<Strings>;
   /** Search as soon as `start()` is called. On by default. */
@@ -43,6 +60,10 @@ type Listener = (context: RenderContext) => void;
 type StateInput = Partial<SearchState> | ((state: SearchState) => Partial<SearchState>);
 
 const SETTLED_MS = 1500;
+// How long after a shop answered by the words alone the same search is asked for in order of meaning.
+const SETTLE_MS = 600;
+/** In the address of a results page: show what the visitor saved. */
+export const FAVOURITES_PARAM = 'favourites';
 const newAi = (): AiState => ({ status: 'idle', question: '', answer: null, history: [] });
 
 /** Whether one reading of a question has a filter, a range or a kind the other has not. */
@@ -68,6 +89,8 @@ export class AgenticSearch {
   strings: Strings;
   ai: AiState = newAi();
   started = false;
+  /** Showing only what the visitor saved, in place of the catalogue. */
+  favouritesOnly = false;
 
   private options: AgenticSearchOptions;
   private widgets: Widget[] = [];
@@ -78,11 +101,16 @@ export class AgenticSearch {
   private pending = false;
   private abort: AbortController | null = null;
   private trackTimer: ReturnType<typeof setTimeout> | null = null;
+  // A shop answers typing at once, by the words; the order by meaning is asked for when the typing stops.
+  private typing = false;
+  private settleTimer: ReturnType<typeof setTimeout> | null = null;
+  private settleSeq = 0;
   private tracked = new Set<string>();
   private askedFor = '';
   private lastRawAdopt: unknown = null;
   private lastFilters: Record<string, unknown> | null = null;
   private offConfig: () => void = () => {};
+  private offActions: Array<() => void> = [];
 
   constructor(options: AgenticSearchOptions) {
     if (!options || !options.searchClient) throw new Error('agenticsearch: searchClient is required');
@@ -124,10 +152,17 @@ export class AgenticSearch {
       const fromUrl = this.router.read();
       if (fromUrl.q || isFiltered(fromUrl) || fromUrl.sort !== 'relevance' || fromUrl.page > 1) this.state = fromUrl;
       this.router.listen((state) => this.setState(state, { route: false, resetPage: false }));
+      try { this.favouritesOnly = new URL(window.location.href).searchParams.get(FAVOURITES_PARAM) === '1'; } catch { /* no address to read */ }
     }
     const context = this.context();
     for (const widget of this.widgets) widget.init?.(context);
     this.offConfig = this.client.onConfig((config) => this.setConfig(config));
+    this.offActions = [
+      // A saved product taken off while only the saved ones are shown leaves the list.
+      this.favourites.subscribe(() => { if (this.favouritesOnly) this.search(); }),
+      // A cart given after the first cards were drawn: they are drawn again, with the button.
+      onCart(() => { this.redraw += 1; this.render(); }),
+    ];
     this.client.getConfig().then((config) => this.setConfig(config)).catch(() => {});
     if (this.options.searchOnStart !== false) this.search();
     else this.render();
@@ -135,11 +170,14 @@ export class AgenticSearch {
   }
 
   dispose(): void {
+    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
     const context = this.context();
     for (const widget of this.widgets) widget.dispose?.(context);
     this.widgets = [];
     this.router?.dispose();
     this.offConfig();
+    for (const off of this.offActions) off();
+    this.offActions = [];
     this.abort?.abort();
     if (this.trackTimer) clearTimeout(this.trackTimer);
     this.flushSearchEvent();
@@ -168,11 +206,21 @@ export class AgenticSearch {
     else this.search();
   }
 
-  setQuery(query: string): void { this.setState({ q: query }); }
+  setQuery(query: string): void { this.typing = true; this.setState({ q: query }); }
+
+  /** The typing has stopped (the field was left): a shop's results are put in order of meaning now, not after the wait. */
+  settle(): void {
+    if (!this.settleTimer) return;
+    clearTimeout(this.settleTimer);
+    this.settleTimer = null;
+    if (this.settleSeq === this.searchSeq) this.runSearch('meaning');
+  }
 
   /** A new search from the words alone, as when Enter is pressed: filters read from older words go. */
   submit(query: string, how: { ask?: boolean } = {}): void {
     const q = String(query || '').trim();
+    // Words entered are for the catalogue, not for the handful that was saved.
+    this.showSaved(false);
     this.setState({ ...emptyState(), q });
     const wantsAi = how.ask !== undefined ? how.ask : this.aiEnabled();
     if (wantsAi && q) this.ask(q);
@@ -217,6 +265,7 @@ export class AgenticSearch {
     if (key === 'sort') patch.sort = 'relevance';
     if (key === 'kind') patch.kind = '';
     if (key === 'in_stock') patch.inStock = false;
+    if (key === 'favourites') this.showSaved(false);
     if (key.startsWith('q:')) {
       const words = ` ${s.q.split(/\s+/).join(' ')} `;
       const at = words.toLowerCase().indexOf(` ${key.slice(2).toLowerCase()} `);
@@ -227,11 +276,102 @@ export class AgenticSearch {
 
   /** Every filter off. The words stay unless `query` is true. */
   clearRefinements(how: { query?: boolean } = {}): void {
+    this.showSaved(false);
     this.setState({ ...emptyState(), q: how.query ? '' : this.state.q, sort: this.state.sort });
   }
 
   /** Searches again with what is set. */
   refresh(): void { this.search(); }
+
+  /* ------------------------------------------------- favourites and cart -- */
+
+  /** Which tag gives which badge on a card. None unless the page said. */
+  badgeRules(): BadgeRule[] {
+    if (!this.badgeList) this.badgeList = parseBadges(this.options.badges);
+    return this.badgeList;
+  }
+  private badgeList: BadgeRule[] | null = null;
+
+  /** The feed fields asked for with every result: the page's own, and the tags when badges are drawn from them. */
+  private fieldsToAsk(): string[] {
+    const fields = (this.options.fields || []).slice();
+    if (this.badgeRules().length && !fields.includes(BADGE_FIELD)) fields.push(BADGE_FIELD);
+    return fields;
+  }
+
+  /** Whether cards show a product's stars: on unless the page said not. */
+  reviewsEnabled(): boolean {
+    return this.options.reviews !== false;
+  }
+
+  /** Whether cards show the line under the name (brand · category): on unless the page said not. */
+  detailsEnabled(): boolean {
+    return this.options.details !== false;
+  }
+
+  /** Whether cards show a sale (old price, percent off): on unless the page said not. */
+  saleEnabled(): boolean {
+    return this.options.sale !== false;
+  }
+
+  /** Whether cards show the shop's own badge: on unless the page said not. */
+  shopBadgesEnabled(): boolean {
+    return this.options.shopBadges !== false;
+  }
+
+  /** Whether cards carry a heart: the option on this instance, else the tool's setting. */
+  favouritesEnabled(): boolean {
+    return this.options.favourites !== undefined ? this.options.favourites : this.config.favourites;
+  }
+
+  /** What this visitor saved, for this tool. */
+  get favourites(): Favourites { return favouritesFor(this.client.toolId); }
+
+  /** Shows only the saved products (as a search of their own, with no request), or the catalogue again. */
+  setFavouritesOnly(on: boolean): void {
+    if (this.favouritesOnly === !!on) return;
+    this.showSaved(!!on);
+    this.state = { ...this.state, page: 1 };
+    this.emit('change');
+    this.search();
+  }
+
+  /**
+   * `favourites=1` in the address is the saved products as a page of their
+   * own, so a header's "Favourites" can link to it. Only where the search
+   * keeps its state in the address.
+   */
+  private showSaved(on: boolean): void {
+    this.favouritesOnly = on;
+    if (!this.router || typeof window === 'undefined') return;
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.has(FAVOURITES_PARAM) === on) return;
+      if (on) url.searchParams.set(FAVOURITES_PARAM, '1');
+      else url.searchParams.delete(FAVOURITES_PARAM);
+      window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash);
+    } catch { /* an address that cannot be rewritten is left as it is */ }
+  }
+
+  /** The cart "Add to cart" adds to, when this search shows the button and the page has given it one. */
+  cart(): CartAdapter | null {
+    const on = this.options.cart !== undefined ? this.options.cart : this.config.addToCart;
+    return on ? getCart() : null;
+  }
+
+  /** Goes up when cards must be drawn again though the results are the same. */
+  redraw = 0;
+
+  private savedResults(asked: SearchState): BrowseResults {
+    const words = asked.q.toLowerCase().split(/\s+/).filter(Boolean);
+    const kept = this.favourites.all();
+    const hits = words.length ? kept.filter((h) => { const text = `${h.title} ${h.meta || ''} ${h.brand || ''}`.toLowerCase(); return words.every((w) => text.includes(w)); }) : kept;
+    return {
+      query: asked.q, page: 1, perPage: Math.max(1, hits.length), found: hits.length, hasMore: false, sort: 'relevance', hits,
+      facets: [], ranges: [], available: [], priceCents: this.config.priceCents, mileageUnit: 'km', state: null, read: false,
+      chips: [{ key: 'favourites', label: this.strings.favourites }], note: '', dropped: '',
+    };
+  }
 
   /* -------------------------------------------------------------- search -- */
 
@@ -240,7 +380,7 @@ export class AgenticSearch {
     return {
       perPage: Math.max(1, Math.min(48, o.perPage || 24)),
       ...(o.facets?.length ? { facets: o.facets } : {}),
-      ...(o.fields?.length ? { fields: o.fields } : {}),
+      ...(this.fieldsToAsk().length ? { fields: this.fieldsToAsk() } : {}),
       ...(o.language ? { language: o.language } : {}),
     };
   }
@@ -255,17 +395,37 @@ export class AgenticSearch {
     Promise.resolve().then(() => this.runSearch());
   }
 
-  private runSearch(): void {
+  private runSearch(rank?: 'meaning'): void {
     this.pending = false;
     const seq = ++this.searchSeq;
     const asked = this.state;
+    const typing = this.typing;
+    this.typing = false;
+    if (this.settleTimer) { clearTimeout(this.settleTimer); this.settleTimer = null; }
+    // Once an answer has said this is a shop, everything but typing may wait for the order by meaning: Enter, a filter, the next page.
+    const settled = rank || (!typing && asked.q && this.results?.ranked ? 'meaning' : undefined);
     this.abort?.abort();
-    this.abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
-    this.client.browse(asked, { ...this.browseOptions(), signal: this.abort?.signal }).then((results) => {
-      if (seq !== this.searchSeq) return;
-      this.results = results;
+    if (this.favouritesOnly && this.favouritesEnabled()) {
+      this.abort = null;
+      this.results = this.savedResults(asked);
       this.status = 'idle';
       this.error = null;
+      this.emit('results');
+      this.render();
+      return;
+    }
+    this.abort = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    this.client.browse(asked, { ...this.browseOptions(), ...(settled ? { rank: settled } : {}), signal: this.abort?.signal }).then((results) => {
+      if (seq !== this.searchSeq) return;
+      this.results = results;
+      // Answered by the words alone: once more when the typing has stopped, straight away if nobody was typing.
+      if (results.ranked === 'words' && !settled) {
+        this.settleSeq = seq;
+        this.settleTimer = setTimeout(() => this.settle(), typing ? SETTLE_MS : 0);
+      }
+      this.status = 'idle';
+      this.error = null;
+      if (this.favouritesEnabled()) this.favourites.refresh(results.hits);
       // The server folds the words into filters ("red volvo under 30k" is
       // a colour, a price and the word volvo): its state is now the state.
       if (results.state && sameSearch(asked, this.state)) {

@@ -42,6 +42,16 @@ export interface Hit {
   /** The price as a number in the index's own unit. */
   priceValue?: number;
   outOfStock: boolean;
+  /** The average review, 0 to 5, when the shop's reviews are in the feed. */
+  rating?: number;
+  /** How many reviews the rating is from. */
+  reviews?: number;
+  /** On sale: the regular price as text, shown struck through beside `price`. */
+  oldPrice?: string;
+  /** On sale: how much off, in whole percent. */
+  discount?: number;
+  /** The shop's own badge for the product ("NEW!"). */
+  shopBadge?: string;
   /** The feed's own fields, when asked for by name with `fields`. */
   fields?: Record<string, unknown>;
 }
@@ -60,6 +70,12 @@ export interface BrowseResults {
   found: number;
   hasMore: boolean;
   sort: SortId;
+  /**
+   * How a shop's results were put in order. 'words' means the order by meaning
+   * was not waited for: asking again with `rank: 'meaning'` gives it. Absent
+   * for anything that is not a shop's search for words.
+   */
+  ranked?: 'words' | 'meaning';
   hits: Hit[];
   facets: Facet[];
   /** Min and max of each numeric attribute in the result set, `price` included. */
@@ -126,6 +142,11 @@ export interface BrowseOptions {
   language?: string;
   /** Feed fields to return on each hit under `fields`. */
   fields?: string[];
+  /**
+   * 'meaning': a shop's results in order of meaning, which may wait a moment for
+   * the words to be understood. Left out, the answer never waits: see `ranked`.
+   */
+  rank?: 'meaning';
   signal?: AbortSignal;
 }
 
@@ -163,6 +184,10 @@ export interface SearchConfig {
   pagesCount: number;
   /** Where a result opens: a new tab (the default), or this one. */
   openInNewTab: boolean;
+  /** A heart on every card, and "Favourites" among the filters. Off unless the tool or the page turns it on. */
+  favourites: boolean;
+  /** "Add to cart" on every card, where the page has given the search a cart (`setCart`). */
+  addToCart: boolean;
   /** An extra button when nothing is found, clicking an element of the site's own (its chat bubble). */
   emptyButton: { label: string; selector: string } | null;
 }
@@ -184,6 +209,12 @@ export interface ClientOptions {
   testMode?: boolean;
   /** A stable id for this visitor's session. Made up when left out. */
   sessionId?: string;
+  /**
+   * For a site in several languages whose search tool has a product index per
+   * language: the visitor's language ("fi"). Every request then asks for that
+   * language's index. Left out, the tool's own index answers, as always.
+   */
+  languageIndex?: string;
 }
 
 export interface SearchClient {
